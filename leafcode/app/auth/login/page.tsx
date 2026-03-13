@@ -26,7 +26,7 @@ export default function AuthLogin() {
       await authClient.signIn.social(
         {
           provider: providerId,
-          callbackURL: "/dashboard",
+          callbackURL: "/",
           errorCallbackURL: "/auth/error",
           newUserCallbackURL: "/auth/welcome",
           disableRedirect: false,
@@ -67,7 +67,7 @@ export default function AuthLogin() {
         {
           email,
           password,
-          callbackURL: "/dashboard",
+          callbackURL: "/",
         },
         {
           onRequest: (ctx) => {

@@ -18,7 +18,7 @@ export default async function AuthLayout({
     });
 
     if (session) {
-        redirect("/dashboard");
+        redirect("/");
     }
 
     return (
