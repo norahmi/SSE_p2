@@ -15,28 +15,27 @@ interface Particle {
   wobbleSpeed: number
 }
 
-// Draws a simple leaf shape on a canvas context
 function drawLeaf(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   size: number,
   rotation: number,
-  opacity: number
+  opacity: number,
+  green: string,
+  greenHover: string,
 ) {
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate(rotation)
   ctx.globalAlpha = opacity
-  ctx.fillStyle = '#22c55e'
+  ctx.fillStyle = green
   ctx.beginPath()
-  // Leaf: two bezier curves forming a pointed oval
   ctx.moveTo(0, -size)
   ctx.bezierCurveTo(size * 0.8, -size * 0.5, size * 0.8, size * 0.5, 0, size)
   ctx.bezierCurveTo(-size * 0.8, size * 0.5, -size * 0.8, -size * 0.5, 0, -size)
   ctx.fill()
-  // Midrib line
-  ctx.strokeStyle = '#16a34a'
+  ctx.strokeStyle = greenHover
   ctx.lineWidth = 0.5
   ctx.globalAlpha = opacity * 0.6
   ctx.beginPath()
@@ -58,6 +57,10 @@ export default function ParticleField() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    const styles = getComputedStyle(document.documentElement)
+    const green      = styles.getPropertyValue('--lc-green').trim()
+    const greenHover = styles.getPropertyValue('--lc-green-hover').trim()
+
     const PARTICLE_COUNT = 55
     const GRAVITY_RADIUS = 160
     const GRAVITY_STRENGTH = 0.018
@@ -69,12 +72,11 @@ export default function ParticleField() {
     resize()
     window.addEventListener('resize', resize)
 
-    // Spawn particles spread across the full canvas
     particlesRef.current = Array.from({ length: PARTICLE_COUNT }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
       vx: (Math.random() - 0.5) * 0.4,
-      vy: -Math.random() * 0.5 - 0.1, // gentle upward drift
+      vy: -Math.random() * 0.5 - 0.1,
       size: Math.random() * 4 + 2,
       opacity: Math.random() * 0.35 + 0.08,
       rotation: Math.random() * Math.PI * 2,
@@ -85,17 +87,14 @@ export default function ParticleField() {
 
     function animate() {
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height)
-
       const mx = mouseRef.current.x
       const my = mouseRef.current.y
 
       for (const p of particlesRef.current) {
-        // Wobble horizontal drift
         p.wobble += p.wobbleSpeed
         p.x += p.vx + Math.sin(p.wobble) * 0.3
         p.y += p.vy
 
-        // Gravitate toward mouse if close enough
         const dx = mx - p.x
         const dy = my - p.y
         const dist = Math.sqrt(dx * dx + dy * dy)
@@ -106,12 +105,11 @@ export default function ParticleField() {
 
         p.rotation += p.rotationSpeed
 
-        // Wrap around edges
         if (p.y < -20) p.y = canvas!.height + 20
         if (p.x < -20) p.x = canvas!.width + 20
         if (p.x > canvas!.width + 20) p.x = -20
 
-        drawLeaf(ctx!, p.x, p.y, p.size, p.rotation, p.opacity)
+        drawLeaf(ctx!, p.x, p.y, p.size, p.rotation, p.opacity, green, greenHover)
       }
 
       rafRef.current = requestAnimationFrame(animate)

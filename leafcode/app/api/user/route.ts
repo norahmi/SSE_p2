@@ -22,7 +22,7 @@ const mockUser: User = {
     avatar: 'https://api.dicebear.com/8.x/bottts-neutral/svg?seed=leafcode-alex',
     rank: 7,
     challengesCompleted: 14,
-    totalCO2Saved: 48320, // grams — ~48 kg CO2
+    totalCO2Consumed: 48320, // grams — ~48 kg CO2
     score: 9240,
     topLanguage: 'Python',
     streak: 5,

@@ -28,7 +28,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${spaceMono.variable} ${inter.variable}`}>
-      <body className="bg-[#060f0a] text-slate-100 antialiased min-h-screen">
+      {/* Background and text color now come from globals.css :root + @layer base */}
+      <body>
         <Navbar />
         {children}
       </body>

@@ -15,7 +15,7 @@ export default async function LandingPage() {
                                     text-6xl sm:text-7xl md:text-8xl xl:text-9xl">
                     Code{' '}
                     <span
-                        className="text-[#28eb70]"
+                        className="text-[var(--lc-green)]"
                         style={{ textShadow: '0 0 60px #28eb7066, 0 0 120px #28eb7022' }}
                     >
                         green,

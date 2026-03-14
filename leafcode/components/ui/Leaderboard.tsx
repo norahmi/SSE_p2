@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { TrendingUp, TrendingDown, Minus, Medal } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Medal, ChevronDown } from 'lucide-react'
 import type { LeaderboardEntry } from '@/types'
 
 interface LeaderboardProps {
@@ -9,8 +9,20 @@ interface LeaderboardProps {
   currentUserId?: string
 }
 
+const LANGUAGES = [
+  { value: 'ALL',        label: 'All languages' },
+  { value: 'PYTHON',     label: 'Python'        },
+  { value: 'JAVASCRIPT', label: 'JavaScript'    },
+  { value: 'TYPESCRIPT', label: 'TypeScript'    },
+  { value: 'RUST',       label: 'Rust'          },
+  { value: 'GO',         label: 'Go'            },
+  { value: 'JAVA',       label: 'Java'          },
+  { value: 'KOTLIN',     label: 'Kotlin'        },
+  { value: 'CPP',        label: 'C++'           },
+]
+
 function DeltaIcon({ delta }: { delta: LeaderboardEntry['delta'] }) {
-  if (delta === 'up') return <TrendingUp className="h-3 w-3 text-[#28eb70]" />
+  if (delta === 'up')   return <TrendingUp   className="h-3 w-3 text-[var(--lc-green)]" />
   if (delta === 'down') return <TrendingDown className="h-3 w-3 text-red-400" />
   return <Minus className="h-3 w-3 text-slate-600" />
 }
@@ -20,89 +32,164 @@ function TopMedal({ rank }: { rank: number }) {
   if (rank <= 3)
     return <Medal className={`h-4 w-4 ${colors[rank - 1]}`} />
   return (
-    <span className="w-4 text-center font-['Space_Mono',monospace] text-xs text-slate-600">
+    <span className="w-4 text-center font-['Space_Mono',monospace] text-xs"
+      style={{ color: 'var(--lc-text-subtle)' }}>
       {rank}
     </span>
   )
 }
 
-export default function Leaderboard({
-  entries,
-  currentUserId,
-}: LeaderboardProps) {
-  const [hovered, setHovered] = useState<string | null>(null)
+export default function Leaderboard({ entries, currentUserId }: LeaderboardProps) {
+  const [hovered,  setHovered]  = useState<string | null>(null)
+  const [filter,   setFilter]   = useState('ALL')
+  const [dropOpen, setDropOpen] = useState(false)
+
+  const filtered = filter === 'ALL'
+    ? entries
+    : entries.filter(e => e.topLanguage === filter)
+
+  const ranked = filtered.map((e, i) => ({ ...e, displayRank: i + 1 }))
+
+  const activeLabel = LANGUAGES.find(l => l.value === filter)?.label ?? 'All languages'
 
   return (
-    <div className="flex h-full flex-col rounded-2xl p-4 border-shadow-sm">
-      {/* Panel header */}
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-['Space_Mono',monospace] font-style-bold text-sm uppercase tracking-widest text-[#28eb70]/70">
+    <div className="flex h-full flex-col rounded-2xl p-4">
+
+      {/* Header row */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="font-['Space_Mono',monospace] font-bold text-sm uppercase tracking-widest text-[var(--lc-green)]/70 shrink-0">
           Global Arena
         </h2>
-      </div>
 
-      {/* Scrollable list */}
-      <div className="flex-1 overflow-y-auto space-y-1 pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#1e3a2a]">
-        {entries.map((entry) => {
-          const isMe = entry.id === currentUserId
-          const isHov = hovered === entry.id
+        {/* Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setDropOpen(o => !o)}
+            className="flex items-center gap-2 rounded-lg px-3 py-1.5 font-['Space_Mono',monospace] text-[10px] uppercase tracking-wider transition-colors"
+            style={{
+              border:     '1px solid var(--lc-border)',
+              color:      'var(--lc-text-muted)',
+              background: 'transparent',
+            }}
+          >
+            {activeLabel}
+            <ChevronDown
+              className="h-3 w-3 transition-transform"
+              style={{ transform: dropOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            />
+          </button>
 
-          return (
-            <div
-              key={entry.id}
-              onMouseEnter={() => setHovered(entry.id)}
-              onMouseLeave={() => setHovered(null)}
-              className={`
-                relative flex items-center gap-3 rounded-lg px-3 py-2.5
-                border transition-all duration-150 cursor-default
-                ${isMe
-                  ? 'border-[#28eb70]/40 bg-[#28eb70]/8'
-                  : isHov
-                  ? 'border-[#1e3a2a] bg-white/[0.03]'
-                  : 'border-transparent'
-                }
-              `}
+          {dropOpen && (
+            <ul
+              className="absolute right-0 top-full mt-1.5 z-20 w-40 rounded-xl overflow-hidden py-1"
+              style={{
+                border:     '1px solid var(--lc-border)',
+                background: 'var(--lc-bg-overlay)',
+                boxShadow:  '0 8px 24px rgba(0,0,0,0.4)',
+              }}
             >
-              {/* Rank */}
-              <div className="w-4 flex justify-center shrink-0">
-                <TopMedal rank={entry.rank} />
-              </div>
-
-              {/* Avatar */}
-              <img
-                src={entry.avatar}
-                alt={entry.name}
-                className="h-7 w-7 rounded-full border border-[#1e3a2a] bg-[#0a1a10] shrink-0"
-              />
-
-              {/* Name */}
-              <div className="flex-1 min-w-0">
-                <p className={`font-['Space_Mono',monospace] text-xs font-bold truncate ${
-                  isMe ? 'text-[#28eb70]' : 'text-slate-200'
-                }`}>
-                  {entry.name}
-                  {isMe && (
-                    <span className="ml-1 text-[9px] text-[#28eb70]/50">(you)</span>
-                  )}
-                </p>
-              </div>
-
-              {/* Score + delta */}
-              <div className="flex flex-col items-end gap-0.5 shrink-0">
-                <span className="font-['Space_Mono',monospace] text-xs font-bold text-slate-100">
-                  {entry.score.toLocaleString()}
-                </span>
-                <DeltaIcon delta={entry.delta} />
-              </div>
-
-              {/* Left glow bar for current user */}
-              {isMe && (
-                <span className="absolute left-0 top-1/4 bottom-1/4 w-0.5 rounded-full bg-[#28eb70]" />
-              )}
-            </div>
-          )
-        })}
+              {LANGUAGES.map(lang => (
+                <li key={lang.value}>
+                  <button
+                    onClick={() => { setFilter(lang.value); setDropOpen(false) }}
+                    className="w-full text-left px-3 py-2 font-['Space_Mono',monospace] text-[10px] uppercase tracking-wider transition-colors"
+                    style={{
+                      color:      filter === lang.value ? 'var(--lc-green)' : 'var(--lc-text-muted)',
+                      background: filter === lang.value
+                        ? 'color-mix(in srgb, var(--lc-green) 8%, transparent)'
+                        : 'transparent',
+                    }}
+                    onMouseEnter={e => {
+                      if (filter !== lang.value)
+                        e.currentTarget.style.background = 'color-mix(in srgb, var(--lc-green) 4%, transparent)'
+                    }}
+                    onMouseLeave={e => {
+                      if (filter !== lang.value)
+                        e.currentTarget.style.background = 'transparent'
+                    }}
+                  >
+                    {lang.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
+
+      {/* Empty state */}
+      {ranked.length === 0 ? (
+        <p className="text-center py-10 font-['Space_Mono',monospace] text-xs"
+          style={{ color: 'var(--lc-text-subtle)' }}>
+          No entries for this language yet.
+        </p>
+      ) : (
+        <div className="flex-1 overflow-y-auto space-y-1 pr-1 no-scrollbar">
+          {ranked.map((entry) => {
+            const isMe  = entry.id === currentUserId
+            const isHov = hovered === entry.id
+
+            return (
+              <div
+                key={entry.id}
+                onMouseEnter={() => setHovered(entry.id)}
+                onMouseLeave={() => setHovered(null)}
+                className="relative flex items-center gap-3 rounded-lg px-3 py-2.5 border transition-all duration-150 cursor-default"
+                style={{
+                  borderColor: isMe
+                    ? 'color-mix(in srgb, var(--lc-green) 40%, transparent)'
+                    : isHov
+                    ? 'var(--lc-border)'
+                    : 'transparent',
+                  background: isMe
+                    ? 'color-mix(in srgb, var(--lc-green) 6%, transparent)'
+                    : isHov
+                    ? 'rgba(255,255,255,0.02)'
+                    : 'transparent',
+                }}
+              >
+                <div className="w-4 flex justify-center shrink-0">
+                  <TopMedal rank={entry.displayRank} />
+                </div>
+
+                <img
+                  src={entry.avatar}
+                  alt={entry.name}
+                  className="h-7 w-7 rounded-full shrink-0"
+                  style={{ border: '1px solid var(--lc-border)', background: 'var(--lc-bg-card)' }}
+                />
+
+                <div className="flex-1 min-w-0">
+                  <p className={`font-['Space_Mono',monospace] text-xs font-bold truncate`}
+                    style={{ color: isMe ? 'var(--lc-green)' : 'var(--lc-text)' }}
+                  >
+                    {entry.name}
+                    {isMe && (
+                      <span className="ml-1 text-[9px]"
+                        style={{ color: 'color-mix(in srgb, var(--lc-green) 50%, transparent)' }}>
+                        (you)
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                <div className="flex flex-col items-end gap-0.5 shrink-0">
+                  <span className="font-['Space_Mono',monospace] text-xs font-bold"
+                    style={{ color: 'var(--lc-text)' }}>
+                    {entry.score.toLocaleString()}
+                  </span>
+                  <DeltaIcon delta={entry.delta} />
+                </div>
+
+                {isMe && (
+                  <span className="absolute left-0 top-1/4 bottom-1/4 w-0.5 rounded-full"
+                    style={{ background: 'var(--lc-green)' }} />
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

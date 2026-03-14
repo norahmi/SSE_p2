@@ -49,9 +49,9 @@ const SEQUENCES: Step[][] = [
 ]
 
 const LINE_COLORS: Record<LineType, string> = {
-  cmd:  'text-[#28eb70]',
-  out:  'text-[#28eb70]/55',
-  dim:  'text-[#28eb70]/28',
+  cmd:  'text-[var(--lc-green)]',
+  out:  'text-[var(--lc-green)]/55',
+  dim:  'text-[var(--lc-green)]/28',
   warn: 'text-amber-400',
   ok:   'text-emerald-400',
 }
@@ -88,7 +88,7 @@ export default function FloatingTerminal() {
       body.appendChild(el)
 
       const cursor = document.createElement('span')
-      cursor.className = 'inline-block w-[7px] h-[13px] bg-[#28eb70] ml-px align-middle animate-pulse'
+      cursor.className = 'inline-block w-[7px] h-[13px] bg-[var(--lc-green)] ml-px align-middle animate-pulse'
       el.appendChild(cursor)
 
       let i = 0
@@ -138,14 +138,14 @@ export default function FloatingTerminal() {
   }, [])
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-[340px] rounded-xl border border-[#28eb70]/20 bg-[#060a08]/92 backdrop-blur-xl shadow-2xl overflow-hidden">
+    <div className="fixed bottom-6 right-6 z-50 w-[340px] rounded-xl border border-[var(--lc-green)]/20 bg-[#060a08]/92 backdrop-blur-xl shadow-2xl overflow-hidden">
 
       {/* Title bar */}
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-[#28eb70]/5 border-b border-[#28eb70]/10">
+      <div className="flex items-center gap-2 px-3 py-2.5 bg-[var(--lc-green)]/5 border-b border-[var(--lc-green)]/10">
         <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        <span className="flex-1 text-center text-[10px] uppercase tracking-widest text-[#28eb70]/40">
+        <span className="flex-1 text-center text-[10px] uppercase tracking-widest text-[var(--lc-green)]/40">
           leafcode · analyzer
         </span>
       </div>
@@ -157,9 +157,9 @@ export default function FloatingTerminal() {
       />
 
       {/* Footer */}
-      <div className="flex items-center gap-2 px-3.5 py-2 border-t border-[#28eb70]/8">
-        <span className="h-1.5 w-1.5 rounded-full bg-[#28eb70] animate-pulse" />
-        <span className="text-[9px] text-[#28eb70]/30 font-['Space_Mono',monospace] uppercase tracking-wider">
+      <div className="flex items-center gap-2 px-3.5 py-2 border-t border-[var(--lc-green)]/8">
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--lc-green)] animate-pulse" />
+        <span className="text-[9px] text-[var(--lc-green)]/30 font-['Space_Mono',monospace] uppercase tracking-wider">
           leafcode v2.4.1 · carbon-aware runtime
         </span>
       </div>
