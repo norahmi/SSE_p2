@@ -11,7 +11,7 @@ import GlowButton from '@/components/ui/GlowButton'
 
 async function getUser(): Promise<User> {
   const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) redirect('/login')
+  if (!session) redirect('/auth/login')
 
   
   const dbUser = await prisma.user.findUnique({
@@ -29,7 +29,7 @@ async function getUser(): Promise<User> {
     },
   })
 
-  if (!dbUser) redirect('/login')
+  if (!dbUser) redirect('/auth/login')
 
   // Compute rank: count how many users have a higher totScore
   const usersAhead = await prisma.user.count({

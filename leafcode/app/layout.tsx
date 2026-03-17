@@ -30,7 +30,6 @@ export default function RootLayout({
     <html lang="en" className={`${spaceMono.variable} ${inter.variable}`}>
       {/* Background and text color now come from globals.css :root + @layer base */}
       <body>
-        <Navbar />
         {children}
       </body>
     </html>

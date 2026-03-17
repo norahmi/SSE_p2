@@ -1,10 +1,11 @@
 "use client"
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Leaf, Menu, X } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Leaf, Menu, X, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { authClient } from '@/lib/auth-client'
 
 const NAV_LINKS = [
   { href: '/',           label: 'Home'       },
@@ -15,7 +16,18 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
+
+  async function handleSignOut() {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          window.location.href = '/auth/login'
+        },
+      },
+    })
+  }
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md"
@@ -62,7 +74,7 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* CTA */}
+        {/* CTA + Logout*/}
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/challenges"
@@ -76,6 +88,14 @@ export default function Navbar() {
           >
             Enter Challenge
           </Link>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/10 transition-colors"
+            aria-label="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </button>
         </div>
 
         {/* Mobile hamburger */}
@@ -125,6 +145,15 @@ export default function Navbar() {
               >
                 Enter Challenge
               </Link>
+            </li>
+            <li>
+              <button
+                onClick={() => { setMenuOpen(false); handleSignOut() }}
+                className="w-full flex items-center gap-2 px-4 py-2 rounded-md text-sm font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
             </li>
           </ul>
         </div>
