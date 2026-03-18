@@ -9,6 +9,7 @@ import ParticleField from '@/components/ui/ParticleField'
 import type { LeaderboardEntry, User, ActivityEntry } from '@/types'
 import GlowButton from '@/components/ui/GlowButton'
 
+
 async function getUser(): Promise<User> {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) redirect('/auth/login')

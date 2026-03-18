@@ -36,7 +36,7 @@ export default function AuthLogin() {
             setIsLoading(true);
           },
           onSuccess: (ctx) => {
-            // redirect to the callback URL
+            window.location.href = '/dashboard';
           },
           onError: (ctx) => {
             setError(
@@ -74,7 +74,8 @@ export default function AuthLogin() {
             setIsLoading(true);
           },
           onSuccess: (ctx) => {
-            // redirect to the callback URL
+            console.log('login success, redirecting...')
+            window.location.href = '/dashboard';
           },
           onError: (ctx) => {
             setError(ctx.error.message);

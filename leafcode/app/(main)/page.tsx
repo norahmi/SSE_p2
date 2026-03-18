@@ -2,6 +2,7 @@ import ParticleField from '@/components/ui/ParticleField'
 import GlowButton from '@/components/ui/GlowButton'
 import FloatingTerminal from '@/components/ui/FloatingTerminal'
 
+
 export default async function LandingPage() {
     return (
         <>

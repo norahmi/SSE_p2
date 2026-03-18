@@ -14,7 +14,14 @@ const NAV_LINKS = [
   { href: '/about',      label: 'About'      },
 ]
 
-export default function Navbar() {
+type Session = {
+  user: {
+    name: string
+    email: string
+  }
+} | null
+
+export default function Navbar({ session }: { session: Session }) {
   const pathname = usePathname()
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -27,6 +34,11 @@ export default function Navbar() {
         },
       },
     })
+  }
+
+  function getHref(href: string) {
+    if (!session) return '/auth/login'
+    return href
   }
 
   return (
@@ -76,26 +88,36 @@ export default function Navbar() {
 
         {/* CTA + Logout*/}
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/challenges"
-            className="px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] transition-colors"
-            style={{
-              background: 'var(--lc-green)',
-              color: 'var(--lc-bg-card)',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--lc-green-hover)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'var(--lc-green)')}
-          >
-            Enter Challenge
-          </Link>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/10 transition-colors"
-            aria-label="Sign out"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </button>
+          {session ? (
+            <>
+              <Link
+                href="/challenges"
+                className="px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] transition-colors"
+                style={{ background: 'var(--lc-green)', color: 'var(--lc-bg-card)' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--lc-green-hover)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--lc-green)')}
+              >
+                Enter Challenge
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/10 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] transition-colors"
+              style={{ background: 'var(--lc-green)', color: 'var(--lc-bg-card)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--lc-green-hover)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--lc-green)')}
+            >
+              Sign In
+            </Link>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -134,26 +156,34 @@ export default function Navbar() {
               </li>
             ))}
             <li className="mt-2">
-              <Link
-                href="/challenges"
-                onClick={() => setMenuOpen(false)}
-                className="block px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-center transition-colors"
-                style={{
-                  background: 'var(--lc-green)',
-                  color: 'var(--lc-bg-card)',
-                }}
-              >
-                Enter Challenge
-              </Link>
-            </li>
-            <li>
-              <button
-                onClick={() => { setMenuOpen(false); handleSignOut() }}
-                className="w-full flex items-center gap-2 px-4 py-2 rounded-md text-sm font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </button>
+              {session ? (
+                <>
+                  <Link
+                    href="/challenges"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-center transition-colors"
+                    style={{ background: 'var(--lc-green)', color: 'var(--lc-bg-card)' }}
+                  >
+                    Enter Challenge
+                  </Link>
+                  <button
+                    onClick={() => { setMenuOpen(false); handleSignOut() }}
+                    className="w-full flex items-center gap-2 px-4 py-2 rounded-md text-sm font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-colors mt-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="block px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-center transition-colors"
+                  style={{ background: 'var(--lc-green)', color: 'var(--lc-bg-card)' }}
+                >
+                  Sign In
+                </Link>
+              )}
             </li>
           </ul>
         </div>

@@ -36,7 +36,7 @@ export default function AuthRegister() {
             setIsLoading(true);
           },
           onSuccess: (ctx) => {
-            // redirect to the callback URL
+            window.location.href = '/dashboard';
           },
           onError: (ctx) => {
             setError(
@@ -82,7 +82,7 @@ export default function AuthRegister() {
             setIsLoading(true);
           },
           onSuccess: (ctx) => {
-            // redirect to the callback URL
+            window.location.href = '/dashboard';
           },
           onError: (ctx) => {
             setError(ctx.error.message);
