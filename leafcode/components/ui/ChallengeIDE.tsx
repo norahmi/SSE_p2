@@ -205,7 +205,7 @@ export default function ChallengeIDE({
 
     const langExt = LANG_EXTENSIONS[language]
     const state = EditorState.create({
-      doc: challenge.starterCode[language],
+      doc: challenge.starterCode?.[language] ?? '',
       extensions: [
         lineNumbers(),
         highlightActiveLine(),
@@ -236,7 +236,7 @@ export default function ChallengeIDE({
       const res = await fetch(`/api/challenges/${challengeId}/submit`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ code, language }),
+        body:    JSON.stringify({ code, language: language.toUpperCase(), }),
       })
       const data: SubmitResult = await res.json()
       setResult(data)

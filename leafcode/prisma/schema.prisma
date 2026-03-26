@@ -16,11 +16,8 @@ datasource db {
 enum Language {
   PYTHON
   CPP
+  C
   JAVASCRIPT
-  TYPESCRIPT
-  RUST
-  GO
-  JAVA
 }
 
 enum Difficulty {
@@ -40,12 +37,14 @@ enum SubmissionStatus {
 // == App models =============================================================
 
 model Challenge {
-  id          Int             @id @default(autoincrement())
-  title       String
-  description String
-  difficulty  Difficulty
-  submissions UserChallenge[]
-  createdAt   DateTime        @default(now())
+  id              Int             @id @default(autoincrement())
+  title           String
+  description     String
+  difficulty      Difficulty
+  submissions     UserChallenge[]
+  createdAt       DateTime        @default(now())
+  languages       Language[]
+  submissionCount Int             @default(0)
 }
 
 model UserChallenge {

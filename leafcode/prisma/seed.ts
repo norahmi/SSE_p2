@@ -1,8 +1,9 @@
 import "dotenv/config";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
-import { Difficulty } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
+import { Difficulty } from '@prisma/client';
+import { Language } from '@prisma/client';
 
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
@@ -13,10 +14,11 @@ const challenges = [
   {
     title: 'The Patience Trap',
     difficulty: Difficulty.EASY,
+    languages: [Language.PYTHON, Language.CPP, Language.C, Language.JAVASCRIPT],
     description: `
 Concept: Resource Management
 
-You are programming the Ares I Mars Rover’s communication relay. 
+You are programming the Ares I Mars Rover's communication relay. 
 The orbiter will be in position in exactly delay ms milliseconds. 
 You must wait exactly that long to save battery, then encrypt and return the transmission payload.
 
@@ -34,6 +36,7 @@ def wait_and_transmit(api, delay_ms, payload_string):
   {
     title: 'The Turbo Trap',
     difficulty: Difficulty.HARD,
+    languages: [Language.PYTHON, Language.CPP],
     description: `
 Concept: Concurrency Scaling
 
@@ -57,6 +60,7 @@ def process_signals(frequencies):
   {
     title: 'The Telemetry Router',
     difficulty: Difficulty.MEDIUM,
+    languages: [Language.PYTHON, Language.CPP, Language.C, Language.JAVASCRIPT],
     description: `
 Concept: Efficient Search Structures
 
@@ -80,6 +84,7 @@ def count_valid_routes(known_routes, queries):
   {
     title: 'The Solar Flare Scanner',
     difficulty: Difficulty.MEDIUM,
+    languages: [Language.PYTHON, Language.CPP, Language.C, Language.JAVASCRIPT],
     description: `
 Concept: Redundant Operations
 
@@ -100,6 +105,7 @@ def max_radiation_window(radiation_data, k):
   {
     title: 'The Spatial Locality Crisis',
     difficulty: Difficulty.MEDIUM,
+    languages: [Language.PYTHON, Language.CPP],
     description: `
 Concept: Memory Architecture
 
@@ -121,6 +127,7 @@ long long calculateElevation(const std::vector<std::vector<int>>& grid, int size
   {
     title: 'The Copy-by-Value Sinkhole',
     difficulty: Difficulty.EASY,
+    languages: [Language.CPP],
     description: `
 Concept: Data Duplication
 
@@ -141,6 +148,7 @@ bool evaluateProfile(UserProfile profile) {
   {
     title: 'The Orbital Collision Engine',
     difficulty: Difficulty.HARD,
+    languages: [Language.PYTHON, Language.CPP, Language.C, Language.JAVASCRIPT],
     description: `
 Concept: Distance Algorithms
 
@@ -162,16 +170,16 @@ def count_collisions(asteroids, dangerous_distance):
 ]
 
 async function main() {
-  console.log('🌱 Seeding challenges...')
+  console.log('Seeding challenges...')
 
   await prisma.challenge.deleteMany()
 
   for (const challenge of challenges) {
     const created = await prisma.challenge.create({ data: challenge })
-    console.log(`✓ ${created.title}`)
+    console.log(`${created.title}`)
   }
 
-  console.log(`\n✅ Seeded ${challenges.length} challenges.`)
+  console.log(`\nSeeded ${challenges.length} challenges.`)
 }
 
 main()
