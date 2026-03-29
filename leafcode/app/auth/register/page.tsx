@@ -26,7 +26,7 @@ export default function AuthRegister() {
       await authClient.signIn.social(
         {
           provider: providerId,
-          callbackURL: "/dashboard",
+          callbackURL: "/",
           errorCallbackURL: "/auth/error",
           newUserCallbackURL: "/auth/welcome",
           disableRedirect: false,
@@ -36,7 +36,7 @@ export default function AuthRegister() {
             setIsLoading(true);
           },
           onSuccess: (ctx) => {
-            // redirect to the callback URL
+            window.location.href = '/dashboard';
           },
           onError: (ctx) => {
             setError(
@@ -75,14 +75,14 @@ export default function AuthRegister() {
           email,
           password,
           name,
-          callbackURL: "/dashboard",
+          callbackURL: "/",
         },
         {
           onRequest: (ctx) => {
             setIsLoading(true);
           },
           onSuccess: (ctx) => {
-            // redirect to the callback URL
+            window.location.href = '/dashboard';
           },
           onError: (ctx) => {
             setError(ctx.error.message);

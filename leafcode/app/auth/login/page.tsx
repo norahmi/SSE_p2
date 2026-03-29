@@ -26,7 +26,7 @@ export default function AuthLogin() {
       await authClient.signIn.social(
         {
           provider: providerId,
-          callbackURL: "/dashboard",
+          callbackURL: "/",
           errorCallbackURL: "/auth/error",
           newUserCallbackURL: "/auth/welcome",
           disableRedirect: false,
@@ -36,7 +36,7 @@ export default function AuthLogin() {
             setIsLoading(true);
           },
           onSuccess: (ctx) => {
-            // redirect to the callback URL
+            window.location.href = '/dashboard';
           },
           onError: (ctx) => {
             setError(
@@ -67,14 +67,15 @@ export default function AuthLogin() {
         {
           email,
           password,
-          callbackURL: "/dashboard",
+          callbackURL: "/",
         },
         {
           onRequest: (ctx) => {
             setIsLoading(true);
           },
           onSuccess: (ctx) => {
-            // redirect to the callback URL
+            console.log('login success, redirecting...')
+            window.location.href = '/dashboard';
           },
           onError: (ctx) => {
             setError(ctx.error.message);

@@ -12,18 +12,76 @@ datasource db {
   provider = "postgresql"
 }
 
+// == Enums =================================================================
+
+enum Language {
+  PYTHON
+  CPP
+  JAVASCRIPT
+  TYPESCRIPT
+  RUST
+  GO
+  JAVA
+  KOTLIN
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum SubmissionStatus {
+  PENDING
+  PASSED
+  FAILED
+}
+
+
+
+// == App models =============================================================
+
+model Challenge {
+  id          Int             @id @default(autoincrement())
+  title       String
+  description String
+  difficulty  Difficulty
+  submissions UserChallenge[]
+  createdAt   DateTime        @default(now())
+}
+
+model UserChallenge {
+  id              String           @id @default(cuid())
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  challenge       Challenge        @relation(fields: [challengeId], references: [id])
+  challengeId     Int
+  score           Int
+  language        Language
+  energyConsumed  Int
+  co2Consumed     Int
+  status          SubmissionStatus @default(PENDING)
+  submittedAt     DateTime         @default(now())
+
+  @@index([userId])
+  @@index([challengeId])
+}
+
+// == Auth + User ============================================================ 
+
 model User {
-  id            String    @id
+  id            String          @id
   name          String
-  email         String
-  emailVerified Boolean   @default(false)
+  email         String          @unique
+  emailVerified Boolean         @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  totScore      Int             @default(0)
   sessions      Session[]
   accounts      Account[]
+  challenges    UserChallenge[]
 
-  @@unique([email])
   @@map("user")
 }
 
