@@ -8,9 +8,7 @@ export interface ActivityEntry {
   challengeName: string
   language: string
   submittedAt: string
-  score: number
-  co2Saved: number
-  energyReduction: number
+  totScore: number
   status: 'passed' | 'failed' | 'pending'
 }
 
@@ -66,10 +64,6 @@ export default function ActivityFeed({ entries }: ActivityFeedProps) {
       >
         {entries.map((entry) => {
           const langStyle = LANG_COLORS[entry.language] ?? 'border-slate-700 text-slate-400'
-          const co2g = entry.co2Saved >= 1000
-            ? `${(entry.co2Saved / 1000).toFixed(1)} kg`
-            : `${entry.co2Saved} g`
-
           return (
             <li
               key={entry.id}
@@ -100,16 +94,10 @@ export default function ActivityFeed({ entries }: ActivityFeedProps) {
 
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <span className={`font-['Space_Mono',monospace] text-xs font-bold ${STATUS_COLOR[entry.status]}`}>
-                  {entry.status === 'passed'  ? `+${entry.score.toLocaleString()} pts` :
+                  {entry.status === 'passed'  ? `+${entry.totScore.toLocaleString()} pts` :
                    entry.status === 'pending' ? 'grading…' :
                    'no score'}
                 </span>
-                <div className="flex items-center gap-2 font-['Space_Mono',monospace] text-[9px]"
-                  style={{ color: 'var(--lc-text-subtle)' }}
-                >
-                  <span>−{entry.energyReduction}% energy</span>
-                  <span className="text-[var(--lc-green)]/50">{co2g} CO₂</span>
-                </div>
               </div>
             </li>
           )

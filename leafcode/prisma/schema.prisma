@@ -4,8 +4,7 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -17,12 +16,8 @@ datasource db {
 enum Language {
   PYTHON
   CPP
+  C
   JAVASCRIPT
-  TYPESCRIPT
-  RUST
-  GO
-  JAVA
-  KOTLIN
 }
 
 enum Difficulty {
@@ -42,12 +37,23 @@ enum SubmissionStatus {
 // == App models =============================================================
 
 model Challenge {
-  id          Int             @id @default(autoincrement())
-  title       String
-  description String
-  difficulty  Difficulty
-  submissions UserChallenge[]
-  createdAt   DateTime        @default(now())
+  id              Int             @id @default(autoincrement())
+  title           String
+  description     String
+  difficulty      Difficulty
+  submissions     UserChallenge[]
+  createdAt       DateTime        @default(now())
+  languages       Language[]
+  submissionCount Int             @default(0)
+  startingCodes   StartingCode[]
+}
+
+model StartingCode {
+  id          Int       @id @default(autoincrement())
+  language    Language
+  code        String    @db.Text // Use @db.Text for long code snippets
+  challengeId Int
+  challenge   Challenge @relation(fields: [challengeId], references: [id])
 }
 
 model UserChallenge {
@@ -62,6 +68,7 @@ model UserChallenge {
   co2Consumed     Int
   status          SubmissionStatus @default(PENDING)
   submittedAt     DateTime         @default(now())
+  code            String
 
   @@index([userId])
   @@index([challengeId])

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { TrendingUp, TrendingDown, Minus, Medal, ChevronDown } from 'lucide-react'
 import type { LeaderboardEntry } from '@/types'
+import { Language } from '@prisma/client'
 
 interface LeaderboardProps {
   entries: LeaderboardEntry[]
@@ -10,15 +11,11 @@ interface LeaderboardProps {
 }
 
 const LANGUAGES = [
-  { value: 'ALL',        label: 'All languages' },
-  { value: 'PYTHON',     label: 'Python'        },
-  { value: 'JAVASCRIPT', label: 'JavaScript'    },
-  { value: 'TYPESCRIPT', label: 'TypeScript'    },
-  { value: 'RUST',       label: 'Rust'          },
-  { value: 'GO',         label: 'Go'            },
-  { value: 'JAVA',       label: 'Java'          },
-  { value: 'KOTLIN',     label: 'Kotlin'        },
-  { value: 'CPP',        label: 'C++'           },
+  { value: 'ALL', label: 'All languages' },
+  ...Object.values(Language).map((lang) => ({
+    value: lang,
+    label: lang.charAt(0) + lang.slice(1).toLowerCase().replace('cpp', 'C++')
+  })),
 ]
 
 function DeltaIcon({ delta }: { delta: LeaderboardEntry['delta'] }) {
@@ -176,9 +173,8 @@ export default function Leaderboard({ entries, currentUserId }: LeaderboardProps
                 <div className="flex flex-col items-end gap-0.5 shrink-0">
                   <span className="font-['Space_Mono',monospace] text-xs font-bold"
                     style={{ color: 'var(--lc-text)' }}>
-                    {entry.score.toLocaleString()}
+                    {entry.totScore.toLocaleString()}
                   </span>
-                  <DeltaIcon delta={entry.delta} />
                 </div>
 
                 {isMe && (
