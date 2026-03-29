@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Clock, Users, Zap, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Users } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-
 import ChallengeIDE from '@/components/ui/ChallengeIDE'
+import type { ChallengeSubmission, SerializedStartingCode } from '@/components/ui/ChallengeIDE'
 
 const DIFF_STYLES = {
   EASY:   'border-emerald-400/30 text-emerald-400 bg-emerald-400/8',
@@ -17,16 +17,45 @@ interface PageProps {
 
 export default async function ChallengePage({ params }: PageProps) {
   const { id } = await params
+  const challengeId = parseInt(id)
+  if (isNaN(challengeId)) notFound()
 
-  const challenge = await prisma.challenge.findUnique({ where: { id: parseInt(id) } })
+  const challenge = await prisma.challenge.findUnique({
+    where: { id: challengeId },
+    include: {
+      startingCodes: true,
+    },
+  })
   if (!challenge) notFound()
 
-  const leaderboard = await prisma.userChallenge.findMany({
-    where: { challengeId: challenge.id, status: 'PASSED' },
+  const rawLeaderboard = await prisma.userChallenge.findMany({
+    where:   { challengeId, status: 'PASSED' },
     orderBy: { score: 'desc' },
-    take: 20,
-    include: { user: true },
+    take:    20,
+    include: { user: { select: { id: true, name: true, image: true } } },
   })
+
+  const leaderboard: ChallengeSubmission[] = rawLeaderboard.map((s, idx) => ({
+    id:              s.id,
+    userId:          s.userId,
+    userName:        s.user.name,
+    userAvatar:      s.user.image
+      ?? `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${s.userId}`,
+    language:        s.language,
+    score:           s.score,
+    submittedAt:     s.submittedAt.toISOString(),
+  }))
+
+  const startingCodes: SerializedStartingCode[] = challenge.startingCodes.map(sc => ({
+    id:          sc.id,
+    language:    sc.language,
+    code:        sc.code,
+    challengeId: sc.challengeId,
+  }))
+
+  const allowedLanguages = challenge.languages.length > 0
+    ? challenge.languages
+    : (['PYTHON', 'CPP', 'C', 'JAVASCRIPT'] as const)
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-10">
@@ -35,15 +64,15 @@ export default async function ChallengePage({ params }: PageProps) {
       <Link
         href="/challenges"
         className="inline-flex items-center gap-2 font-['Space_Mono',monospace] text-xs
-                   text-slate-600 hover:text-slate-300 transition-colors mb-8 group"
+                  text-slate-600 hover:text-slate-300 transition-colors mb-8 group"
       >
         <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
         Back to challenges
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_520px] gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8">
 
-        {/* ── LEFT: Description ───────────────────────────────────── */}
+        {/* LEFT: Description */}
         <div className="flex flex-col gap-6">
 
           {/* Title block */}
@@ -53,82 +82,88 @@ export default async function ChallengePage({ params }: PageProps) {
                                 font-['Space_Mono',monospace] ${DIFF_STYLES[challenge.difficulty]}`}>
                 {challenge.difficulty}
               </span>
-              <div className="flex items-center gap-4 font-['Space_Mono',monospace] text-[10px] text-slate-600">
-                <span className="flex items-center gap-1.5">
-                  <Users className="h-3 w-3" /> {challenge.submissionCount.toLocaleString()} submissions
-                </span>
-              </div>
+              <span className="flex items-center gap-1.5 font-['Space_Mono',monospace] text-[10px] text-slate-400">
+                <Users className="h-3 w-3" />
+                {challenge.submissionCount.toLocaleString()} submissions
+              </span>
             </div>
 
             <h1 className="font-['Space_Mono',monospace] text-2xl font-bold text-slate-100">
               {challenge.title}
             </h1>
 
-            {/* Energy target pill */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
-                            border border-[#28eb70]/20 bg-[#28eb70]/5 w-fit">
-              <Zap className="h-3.5 w-3.5 text-[#28eb70]" />
+            {/* Allowed languages */}
+            <div className="flex flex-wrap gap-2">
+              {allowedLanguages.map(lang => (
+                <span
+                  key={lang}
+                  className="px-2 py-0.5 rounded-md border border-[#28eb70]/20
+                            font-['Space_Mono',monospace] text-[10px] text-[#28eb70]/70
+                            bg-[#28eb70]/5"
+                >
+                  {lang.toLowerCase()}
+                </span>
+              ))}
             </div>
           </div>
 
-          {/* Full description (markdown-style) */}
-          <div className="rounded-xl border border-[#1e3a2a] bg-[#0a1a10]/40 p-6">
-            <div className="prose prose-sm prose-invert max-w-none
-                            font-['Space_Mono',monospace] text-slate-400
-                            prose-headings:text-slate-200 prose-headings:font-bold
-                            prose-code:text-[#28eb70] prose-code:bg-[#28eb70]/8
-                            prose-code:px-1 prose-code:rounded
-                            prose-strong:text-slate-200">
-              {/* Render description line by line — use react-markdown for real MD */}
-              {challenge.description.split('\n').map((line, i) => {
-                if (line.startsWith('## '))
-                  return <h2 key={i} className="font-['Space_Mono',monospace] text-base font-bold text-slate-200 mt-5 mb-2">{line.slice(3)}</h2>
-                if (line.startsWith('- '))
-                  return <p key={i} className="font-['Space_Mono',monospace] text-xs text-slate-500 leading-relaxed pl-4">• {line.slice(2)}</p>
-                if (line.trim() === '')
-                  return <div key={i} className="h-2" />
-                return <p key={i} className="font-['Space_Mono',monospace] text-xs text-slate-400 leading-relaxed">{line}</p>
-              })}
-            </div>
-          </div>
+          {/* Description — basic markdown-lite rendering */}
+          <div className="rounded-2xl border border-[#28eb70]/20 bg-[#06120b]/80 p-8 shadow-[0_0_50px_-12px_rgba(16,185,129,0.15)] backdrop-blur-md">
+            {challenge.description.split('\n').map((line, i) => {
+              const trimmed = line.trim();
 
-          {/* Constraints */}
-          <div className="rounded-xl border border-amber-400/15 bg-amber-400/4 p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
-              <span className="font-['Space_Mono',monospace] text-xs font-bold text-amber-400 uppercase tracking-wider">
-                Constraints
-              </span>
-            </div>
-          </div>
+              if (trimmed.startsWith('Concept:')) {
+                return (
+                  <div key={i} className="mb-6 flex">
+                    <span className="rounded-full bg-[#28eb70]/10 px-4 py-1.5 border border-[#28eb70]/30 text-[11px] font-bold uppercase tracking-[0.15em] text-[#28eb70]/400 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                      {trimmed}
+                    </span>
+                  </div>
+                )
+              }
 
-          {/* Example I/O */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[
-              { label: 'Example Input',  value: "example input"  },
-              { label: 'Example Output', value: "example output" },
-            ].map(({ label, value }) => (
-              <div key={label} className="rounded-xl border border-[#1e3a2a] bg-[#060f0a] p-4">
-                <p className="font-['Space_Mono',monospace] text-[9px] uppercase tracking-wider text-slate-600 mb-2">
-                  {label}
+              if (trimmed.startsWith('## ')) {
+                return (
+                  <h2 key={i} className="mt-8 mb-3 font-['Space_Mono',monospace] text-sm font-black uppercase tracking-widest text-[#28eb70] flex items-center gap-3">
+                    <span className="h-[1px] w-4 bg-[#28eb70]/50" />
+                    {trimmed.slice(3)}
+                  </h2>
+                )
+              }
+
+              if (trimmed.startsWith('- ')) {
+                return (
+                  <div key={i} className="group flex gap-3 pl-2 py-1">
+                    <span className="text-[#28eb70] font-bold transition-transform group-hover:scale-125">›</span>
+                    <p className="font-['Space_Mono',monospace] text-[13px] text-[#28eb70]/80 leading-relaxed">
+                      {trimmed.slice(2)}
+                    </p>
+                  </div>
+                )
+              }
+
+              if (trimmed === '') return <div key={i} className="h-4" />
+
+              // 4. MAIN BODY: Using a very bright "Mint" white
+              return (
+                <p key={i} className="font-['Space_Mono',monospace] text-[13px] text-emerald-50/90 leading-7 antialiased mb-2">
+                  {line}
                 </p>
-                <code className="font-['Space_Mono',monospace] text-xs text-[#28eb70]/80">
-                  {value}
-                </code>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
-        {/* ── RIGHT: IDE + Results + Leaderboard ──────────────────── */}
-        <div className="flex flex-col gap-6">
+        {/* ── RIGHT: IDE ────────────────────────────────────────────── */}
+        <div className="flex flex-col gap-4">
           <p className="font-['Space_Mono',monospace] text-xs uppercase tracking-widest text-[#28eb70]/50">
             Your Solution
           </p>
           <ChallengeIDE
-            challenge={challenge}
-            leaderboard={leaderboard}
             challengeId={challenge.id}
+            allowedLanguages={[...allowedLanguages]}
+            startingCodes={startingCodes}
+            leaderboard={leaderboard}
           />
         </div>
 

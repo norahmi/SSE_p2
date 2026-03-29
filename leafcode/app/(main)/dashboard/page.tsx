@@ -53,7 +53,7 @@ async function getUser(): Promise<User> {
     avatar:               session.user.image
                             ?? `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${dbUser.id}`,
     rank,
-    score:                dbUser.totScore,
+    totScore:                dbUser.totScore,
     challengesCompleted:  dbUser.challenges.length,
     totalCO2Consumed,
     topLanguage,
@@ -92,7 +92,7 @@ async function getLeaderboard(): Promise<LeaderboardEntry[]> {
       name:                u.name,
       avatar:              u.image ?? `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${u.id}`,
       rank:                index + 1,
-      score:               u.totScore,
+      totScore:               u.totScore,
       challengesCompleted: u.challenges.length,
       totalCO2Consumed,
       topLanguage
@@ -116,9 +116,7 @@ async function getActivity(userId: string): Promise<ActivityEntry[]> {
     challengeName:   s.challenge.title,
     language:        s.language,
     submittedAt:     timeAgo(s.submittedAt),
-    score:           s.score,
-    co2Saved:        s.co2Saved,
-    energyReduction: s.energySaved,
+    totScore:           s.score,
     status:          s.status.toLowerCase() as 'passed' | 'failed' | 'pending',
   }))
 }
