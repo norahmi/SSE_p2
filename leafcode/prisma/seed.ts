@@ -16,21 +16,67 @@ const challenges = [
     difficulty: Difficulty.EASY,
     languages: [Language.PYTHON, Language.CPP, Language.C, Language.JAVASCRIPT],
     description: `
-Concept: Resource Management
+    Concept: Resource Management
 
-You are programming the Ares I Mars Rover's communication relay. 
-The orbiter will be in position in exactly delay ms milliseconds. 
-You must wait exactly that long to save battery, then encrypt and return the transmission payload.
+    You are programming the Ares I Mars Rover's communication relay. 
+    The orbiter will be in position in exactly delay ms milliseconds. 
+    You must wait exactly that long to save battery, then encrypt and return the transmission payload.`,
+    startingCodes: [
+      { language: Language.PYTHON,
+        code: `
+        def wait_and_transmit (api , delay_ms , payload_string ):
+        """Waits for the specified delay_ms , then encrypts and returns the payload .
+        WARNING : Constant CPU polling will drain the battery !
+        """
+        # Write your energy - efficient code here
+        pass
+        `
+      },
+      { language: Language.CPP, 
+        code: `
+        #include <string>
+        #include <chrono>
+        #include <thread>
 
-Starter Code:
+        std::string wait_and_transmit(void* api, int delay_ms, std::string payload_string) {
+            /*
+            * Waits for the specified delay_ms, then encrypts and returns the payload.
+            * WARNING: Constant CPU polling will drain the battery!
+            * HINT: The std::this_thread namespace has what you need.
+            */
 
-def wait_and_transmit(api, delay_ms, payload_string):
-    """
-    Waits for the specified delay_ms, then encrypts and returns the payload.
-    WARNING: Constant CPU polling will drain the battery!
-    """
-    pass
-    `,
+            // Write your energy-efficient code here
+            return "";
+        }
+        ` },
+      { language: Language.C, 
+        code: `
+        #include <unistd.h>
+        char* wait_and_transmit(void* api, int delay_ms, const char* payload_string) {
+            /*
+            * Waits for the specified delay_ms, then encrypts and returns the payload.
+            * WARNING: Constant CPU polling (busy-waiting) will drain the battery!
+            * HINT: Look into system sleep functions.
+            */
+            
+            // Write your energy-efficient code here
+            return NULL;
+        }
+        ` },
+      { language: Language.JAVASCRIPT, 
+        code: `
+        async function waitAndTransmit(api, delayMs, payloadString) {
+          /**
+           * Waits for the specified delayMs, then encrypts and returns the payload.
+           * WARNING: A 'while' loop checking the time will freeze the thread!
+           * HINT: Think about Promises and setTimeout.
+           */
+
+          // Write your energy-efficient code here
+          return "";
+        }
+        ` },
+    ]
   },
 
   {
@@ -38,23 +84,25 @@ def wait_and_transmit(api, delay_ms, payload_string):
     difficulty: Difficulty.HARD,
     languages: [Language.PYTHON, Language.CPP],
     description: `
-Concept: Concurrency Scaling
+    Concept: Concurrency Scaling
 
-A deep space telescope has captured an array of signal frequencies. 
-You must apply a heavy mathematical smoothing algorithm to every frequency. 
-The payload sizes vary wildly: sometimes 10 signals, and sometimes 10,000,000.
-
-Starter Code:
-
-import multiprocessing
-
-def process_signals(frequencies):
-    """
-    Applies a mathematical smoothing function to a list of frequencies.
-    HINT: Is booting up 4 CPU cores always the most energy-efficient choice?
-    """
-    pass
+    A deep space telescope has captured an array of signal frequencies. 
+    You must apply a heavy mathematical smoothing algorithm to every frequency. 
+    The payload sizes vary wildly: sometimes 10 signals, and sometimes 10,000,000.
     `,
+    startingCodes: [
+      { language: Language.PYTHON,
+        code: `
+        import multiprocessing
+        def process_signals(frequencies):
+            """
+            Applies a mathematical smoothing function to a list of frequencies.
+            HINT: Is booting up 4 CPU cores always the most energy-efficient choice?
+            """
+            pass
+        `
+      },
+    ]
   },
 
   {
@@ -62,23 +110,74 @@ def process_signals(frequencies):
     difficulty: Difficulty.MEDIUM,
     languages: [Language.PYTHON, Language.CPP, Language.C, Language.JAVASCRIPT],
     description: `
-Concept: Efficient Search Structures
+    Concept: Efficient Search Structures
 
-Your orbital relay processes millions of data packets. 
-You are given a database of 100,000 known telemetry routes (e.g., "MARS.BASE.ALPHA") 
-and an incoming stream of 10,000 partial route queries (e.g., "MARS.BASE").
+    Your orbital relay processes millions of data packets. 
+    You are given a database of 100,000 known telemetry routes (e.g., "MARS.BASE.ALPHA") 
+    and an incoming stream of 10,000 partial route queries (e.g., "MARS.BASE").
 
-Return how many queries match the start of a known route.
-
-Starter Code:
-
-def count_valid_routes(known_routes, queries):
-    """
-    Returns the number of queries that are valid prefixes of known_routes.
-    HINT: Can you build a data structure that maps prefixes in advance?
-    """
-    return 0
+    Return how many queries match the start of a known route.
     `,
+  startingCodes: [
+      { language: Language.PYTHON,
+        code: `
+        def count_valid_routes ( known_routes , queries ):
+        """
+        Returns the number of queries that are valid prefixes of known_routes .
+        HINT : Can you build a data structure that maps prefixes in advance ?
+        """
+        # Write your energy - efficient code here
+        return 0
+        `
+      },
+      { language: Language.CPP, 
+        code: `
+        #include <vector>
+        #include <string>
+
+        /**
+         * Returns the number of queries that are valid prefixes of known_routes.
+         * * HINT: How can you avoid O(N * M) string comparisons? 
+         * Think about using a Trie or a sorted search.
+         */
+        int count_valid_routes(const std::vector<std::string>& known_routes, const std::vector<std::string>& queries) {
+            // Write your energy-efficient code here
+            return 0;
+        }
+        ` },
+      { language: Language.C, 
+        code: `
+        #include <stdio.h>
+        #include <string.h>
+
+        /**
+         * Returns the number of queries that are valid prefixes of known_routes.
+         * * @param known_routes An array of strings representing valid telemetry routes.
+         * @param num_routes The number of elements in known_routes.
+         * @param queries An array of strings to check against known routes.
+         * @param num_queries The number of elements in queries.
+         * * HINT: Can you build a data structure (like a Trie) to map prefixes in advance?
+         */
+        int count_valid_routes(const char** known_routes, int num_routes, const char** queries, int num_queries) {
+            // Write your energy-efficient code here
+            return 0;
+        }
+        ` },
+      { language: Language.JAVASCRIPT, 
+        code: `
+        /**
+         * Returns the number of queries that are valid prefixes of known_routes.
+         * * @param {string[]} knownRoutes
+         * @param {string[]} queries
+         * * HINT: Building a nested object representing each character 
+         * can help you find prefixes in linear time.
+         */
+        function countValidRoutes(knownRoutes, queries) {
+            // Write your energy-efficient code here
+            return 0;
+        }
+        ` },
+    ]
   },
 
   {
@@ -175,9 +274,16 @@ async function main() {
   await prisma.challenge.deleteMany()
 
   for (const challenge of challenges) {
-    const created = await prisma.challenge.create({ data: challenge })
-    console.log(`${created.title}`)
-  }
+    // Destructure to separate the nested array from the main challenge fields
+    const { startingCodes, ...challengeData } = challenge;
+    await prisma.challenge.create({
+      data: {
+        ...challengeData,
+        startingCodes: {
+          create: startingCodes
+        }
+      }
+    });
 
   console.log(`\nSeeded ${challenges.length} challenges.`)
 }
