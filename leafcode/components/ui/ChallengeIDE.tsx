@@ -186,7 +186,8 @@ function ChallengeLeaderboard({
                   {entry.score.toLocaleString()}
                 </span>
                 <span className="font-['Space_Mono',monospace] text-[9px] text-[#28eb70]/60">
-                  −{entry.energyReduction}%
+                  {/* −{entry.energyReduction}% */}
+                  −0%
                 </span>
               </div>
             </li>
@@ -360,8 +361,10 @@ export default function ChallengeIDE({
           {/* Stats grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-[#1e3a2a] bg-[#0a1a10]/40">
             {[
-              { icon: Zap,  label: 'Energy reduction', value: `${result.energyReduction}%`,  color: 'text-[#28eb70]'   },
-              { icon: Leaf, label: 'CO₂ saved',         value: `${result.co2Saved} g`,        color: 'text-emerald-400' },
+              // { icon: Zap,  label: 'Energy reduction', value: `${result.energyReduction}%`,  color: 'text-[#28eb70]'   },
+              // { icon: Leaf, label: 'CO₂ saved',         value: `${result.co2Saved} g`,        color: 'text-emerald-400' },
+              { icon: Zap,  label: 'Energy reduction', value: `0%`,  color: 'text-[#28eb70]'   },
+              { icon: Leaf, label: 'CO₂ saved',         value: `0 g`,        color: 'text-emerald-400' },
               { icon: Zap,  label: 'Your energy',       value: `${result.yourEnergy} mWh`,    color: 'text-slate-300'   },
               { icon: Zap,  label: 'Exec time',         value: `${result.executionTime}s`,    color: 'text-slate-300'   },
             ].map(({ icon: Icon, label, value, color }) => (
@@ -386,8 +389,10 @@ export default function ChallengeIDE({
             </p>
             <div className="flex flex-col gap-2">
               {[
-                { label: 'Baseline', width: '100%',                            color: 'bg-red-400/40',    val: `${result.baselineEnergy} mWh`, textColor: 'text-slate-500'   },
-                { label: 'Yours',    width: `${100 - result.energyReduction}%`, color: 'bg-[#28eb70]/70', val: `${result.yourEnergy} mWh`,    textColor: 'text-[#28eb70]'  },
+                // { label: 'Baseline', width: '100%',                            color: 'bg-red-400/40',    val: `${result.baselineEnergy} mWh`, textColor: 'text-slate-500'   },
+                // { label: 'Yours',    width: `${100 - result.energyReduction}%`, color: 'bg-[#28eb70]/70', val: `${result.yourEnergy} mWh`,    textColor: 'text-[#28eb70]'  },
+                { label: 'Baseline', width: '100%',                            color: 'bg-red-400/40',    val: `0 mWh`, textColor: 'text-slate-500'   },
+                { label: 'Yours',    width: `0%`, color: 'bg-[#28eb70]/70', val: `${result.yourEnergy} mWh`,    textColor: 'text-[#28eb70]'  },
               ].map(({ label, width, color, val, textColor }) => (
                 <div key={label} className="flex items-center gap-3">
                   <span className="font-['Space_Mono',monospace] text-[10px] text-slate-500 w-16 shrink-0">{label}</span>

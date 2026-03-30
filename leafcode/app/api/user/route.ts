@@ -23,7 +23,7 @@ const mockUser: User = {
     rank: 7,
     challengesCompleted: 14,
     totalCO2Consumed: 48320, // grams — ~48 kg CO2
-    score: 9240,
+    totScore: 9240,
     topLanguage: 'Python',
     streak: 5,
 }

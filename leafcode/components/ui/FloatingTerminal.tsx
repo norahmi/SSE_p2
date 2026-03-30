@@ -66,14 +66,20 @@ export default function FloatingTerminal() {
 
   useEffect(() => {
     cancelRef.current = false
-    const body = bodyRef.current
-    if (!body) return
+
+    function getBody() {
+      return bodyRef.current
+    }
 
     function trimLines() {
+      const body = getBody()
+      if (!body) return
       while (body.children.length >= MAX_LINES) body.removeChild(body.firstChild!)
     }
 
     function addLine(type: LineType, text: string) {
+      const body = getBody()
+      if (!body) return
       trimLines()
       const el = document.createElement('div')
       el.className = `text-[10.5px] leading-relaxed whitespace-pre font-['Space_Mono',monospace] ${LINE_COLORS[type]}`
@@ -82,6 +88,8 @@ export default function FloatingTerminal() {
     }
 
     function typewriterLine(type: LineType, text: string, done: () => void) {
+      const body = getBody()
+      if (!body) return
       trimLines()
       const el = document.createElement('div')
       el.className = `text-[10.5px] leading-relaxed whitespace-pre font-['Space_Mono',monospace] ${LINE_COLORS[type]}`

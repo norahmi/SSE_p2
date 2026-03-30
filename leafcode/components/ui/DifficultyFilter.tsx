@@ -1,7 +1,9 @@
 "use client"
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import type { Difficulty } from '@/lib/mock-challenges'
+// import type { Difficulty } from '@/lib/mock-challenges'
+
+type Difficulty = 'EASY' | 'MEDIUM' | 'HARD'
 
 const OPTIONS: { label: string; value: Difficulty | 'ALL' }[] = [
   { label: 'All',    value: 'ALL'    },

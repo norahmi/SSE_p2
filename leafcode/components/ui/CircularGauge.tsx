@@ -22,21 +22,11 @@ export default function CircularGauge({
   size = 160,
 }: GaugeProps) {
   const [animatedValue, setAnimatedValue] = useState(0)
-  const [resolvedColor, setResolvedColor] = useState(color ?? '#28eb70')
   const rafRef = useRef<number>(0)
   const startTimeRef = useRef<number | null>(null)
   const DURATION = 1400
-
-  useEffect(() => {
-    if (!color) {
-      const green = getComputedStyle(document.documentElement)
-        .getPropertyValue('--lc-green')
-        .trim()
-      if (green) setResolvedColor(green)
-    } else {
-      setResolvedColor(color)
-    }
-  }, [color])
+  const resolvedColor = color ?? 'var(--lc-green, #28eb70)'
+  const glowColor = color ? `${color}60` : 'rgba(40, 235, 112, 0.38)'
 
   useEffect(() => {
     startTimeRef.current = null
@@ -97,7 +87,7 @@ export default function CircularGauge({
             strokeDashoffset={dashOffset}
             style={{
               transition: 'none',
-              filter: `drop-shadow(0 0 6px ${resolvedColor}60)`,
+              filter: `drop-shadow(0 0 6px ${glowColor})`,
             }}
           />
         </svg>

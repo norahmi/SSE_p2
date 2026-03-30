@@ -10,7 +10,30 @@ import type { LeaderboardEntry, User, ActivityEntry } from '@/types'
 import GlowButton from '@/components/ui/GlowButton'
 
 
-async function getUser(session): Promise<User> {
+interface SessionType {
+  session: {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        expiresAt: Date;
+        token: string;
+        ipAddress?: string | null | undefined;
+        userAgent?: string | null | undefined;
+    };
+    user: {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        email: string;
+        emailVerified: boolean;
+        name: string;
+        image?: string | null | undefined;
+    };
+}
+
+
+async function getUser(session: SessionType): Promise<User> {
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: {
@@ -74,7 +97,7 @@ async function getLeaderboard(): Promise<LeaderboardEntry[]> {
     },
   })
 
-  return users.map((u, index) => {
+  const leaderboard: LeaderboardEntry[] = users.map((u, index) => {
     // Top language for this user
     const langCount: Record<string, number> = {}
     for (const c of u.challenges) {
@@ -82,6 +105,7 @@ async function getLeaderboard(): Promise<LeaderboardEntry[]> {
     }
     const topLanguage = Object.entries(langCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'N/A'
     const totalCO2Consumed = u.challenges.reduce((sum, c) => sum + c.co2Consumed, 0)
+    const delta: 'up' | 'down' | 'same' = 'same' // TODO: track previous rank to compute this
 
     return {
       id:                  u.id,
@@ -91,9 +115,12 @@ async function getLeaderboard(): Promise<LeaderboardEntry[]> {
       totScore:               u.totScore,
       challengesCompleted: u.challenges.length,
       totalCO2Consumed,
-      topLanguage
+      topLanguage,
+      delta
     }
   })
+
+  return leaderboard
 }
 
 
@@ -114,6 +141,8 @@ async function getActivity(userId: string): Promise<ActivityEntry[]> {
     submittedAt:     timeAgo(s.submittedAt),
     totScore:           s.score,
     status:          s.status.toLowerCase() as 'passed' | 'failed' | 'pending',
+    co2Consumed:     s.co2Consumed || 0,
+    energyReduction: 0, // TODO: compute this based on a baseline per language
   }))
 }
 
@@ -141,7 +170,7 @@ export default async function HomePage() {
           <h2 className="font-['Space_Mono',monospace] font-bold text-xl px-8 mb-10">
             Ready for a new challenge?
           </h2>
-          <GlowButton href="/challenges" label="Start Coding" className="mt-14" />
+          <GlowButton href="/challenges" label="Start Coding" />
         </div>
 
         <div className="flex flex-col lg:flex-row flex-1">

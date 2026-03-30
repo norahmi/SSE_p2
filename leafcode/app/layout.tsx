@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${spaceMono.variable} ${inter.variable}`} suppressHydrationWarning>
       {/* Background and text color now come from globals.css :root + @layer base */}
-      <body>
+      <body suppressHydrationWarning>
         {children}
       </body>
     </html>
