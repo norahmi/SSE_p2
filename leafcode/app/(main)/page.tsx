@@ -9,7 +9,7 @@ export default async function LandingPage() {
             <ParticleField />
             <FloatingTerminal />
 
-            <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
+            <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-72px)]">
 
                 <section className="flex flex-col items-center justify-center text-center px-6 gap-8">
                     <h1 className="font-['Space_Mono',monospace] font-bold leading-[1.05] text-slate-100
