@@ -252,7 +252,7 @@ export default function ChallengeIDE({
     setResult(null)
 
     try {
-      const res = await fetch(`/api/challenges/${challengeId}/submit`, {
+      const res = await fetch(`/challenges/${challengeId}/submit`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         // Send language in uppercase to match the Prisma enum

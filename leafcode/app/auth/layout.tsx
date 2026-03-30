@@ -44,7 +44,7 @@ export default async function AuthLayout({
         </div>
 
         {/* Main card */}
-        <div className="relative z-10 w-full max-w-4xl mx-auto px-4 py-10">
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-4 py-10">
             <div className="grid grid-cols-1 md:grid-cols-2 rounded-2xl overflow-hidden
                             border border-[#1e3a2a] shadow-2xl">
 

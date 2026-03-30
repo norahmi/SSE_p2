@@ -167,7 +167,7 @@ export default function AuthRegister() {
             )}
           </Button>
         </Field>
-        <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
+        {/* <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
           Or continue with
         </FieldSeparator>
         <Field className="grid grid-cols-3 gap-4">
@@ -236,7 +236,7 @@ export default function AuthRegister() {
             </svg>
             <span className="sr-only">Sign Up with Microsoft</span>
           </Button>
-        </Field>
+        </Field> */}
         <FieldDescription className="text-center">
           Already have an account? <Link href="/auth/login">Sign In</Link>
         </FieldDescription>

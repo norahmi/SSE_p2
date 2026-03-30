@@ -10,11 +10,7 @@ import type { LeaderboardEntry, User, ActivityEntry } from '@/types'
 import GlowButton from '@/components/ui/GlowButton'
 
 
-async function getUser(): Promise<User> {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) redirect('/auth/login')
-
-  
+async function getUser(session): Promise<User> {
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: {
@@ -123,7 +119,10 @@ async function getActivity(userId: string): Promise<ActivityEntry[]> {
 
 export default async function HomePage() {
   // Run all three queries in parallel — no need to wait for them sequentially
-  const userPromise      = getUser()
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session) redirect('/auth/login')
+
+  const userPromise = getUser(session)
   const leaderboardPromise = userPromise.then((u) =>
     Promise.all([getLeaderboard(), getActivity(u.id)]).then(([lb, act]) => ({ lb, act }))
   )

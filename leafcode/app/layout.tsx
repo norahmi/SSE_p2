@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${spaceMono.variable} ${inter.variable}`}>
+    <html lang="en" className={`${spaceMono.variable} ${inter.variable}`} suppressHydrationWarning>
       {/* Background and text color now come from globals.css :root + @layer base */}
       <body>
         {children}
