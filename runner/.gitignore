@@ -1,0 +1,8 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+
+# Cloud Energy
+lib/cloud-energy/*.pyc
