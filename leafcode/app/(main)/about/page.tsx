@@ -1,3 +1,9 @@
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'About',
+}
+
 export default function AboutPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6">

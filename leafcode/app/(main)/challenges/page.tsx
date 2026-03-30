@@ -3,6 +3,11 @@ import { prisma } from '@/lib/prisma'
 import ChallengeCard from '@/components/ui/ChallengeCard'
 import DifficultyFilter from '@/components/ui/DifficultyFilter'
 import type { Difficulty } from '@prisma/client'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Challenges',
+}
 
 interface PageProps {
   searchParams: Promise<{ difficulty?: string }>

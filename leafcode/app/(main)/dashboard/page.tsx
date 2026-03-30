@@ -8,7 +8,11 @@ import ActivityFeed from '@/components/ui/ActivityFeed'
 import ParticleField from '@/components/ui/ParticleField'
 import type { LeaderboardEntry, User, ActivityEntry } from '@/types'
 import GlowButton from '@/components/ui/GlowButton'
+import { Metadata } from 'next'
 
+export const metadata: Metadata = {
+  title: 'Dashboard',
+}
 
 interface SessionType {
   session: {

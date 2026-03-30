@@ -4,6 +4,7 @@ import { ArrowLeft, Users } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import ChallengeIDE from '@/components/ui/ChallengeIDE'
 import type { ChallengeSubmission, SerializedStartingCode } from '@/components/ui/ChallengeIDE'
+import type { Metadata } from "next";
 
 const DIFF_STYLES = {
   EASY:   'border-emerald-400/30 text-emerald-400 bg-emerald-400/8',
@@ -13,6 +14,20 @@ const DIFF_STYLES = {
 
 interface PageProps {
   params: { id: string }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const challengeId = parseInt(id)
+  if (isNaN(challengeId)) return {}
+
+  const challenge = await prisma.challenge.findUnique({
+    where: { id: challengeId },
+    select: { title: true },
+  })
+  if (!challenge) return {}
+
+  return { title: challenge.title }
 }
 
 export default async function ChallengePage({ params }: PageProps) {
@@ -56,6 +71,8 @@ export default async function ChallengePage({ params }: PageProps) {
   const allowedLanguages = challenge.languages.length > 0
     ? challenge.languages
     : (['PYTHON', 'CPP', 'C', 'JAVASCRIPT'] as const)
+
+  
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-10">
