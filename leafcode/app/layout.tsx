@@ -17,8 +17,41 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'LeafCode — Green Code Challenges',
+  title: {
+    template: '%s | LeafCode',
+    default: 'LeafCode - Green Code Challenges',
+  },
   description: 'Compete to reduce the carbon footprint of real codebases.',
+  metadataBase: new URL("https://leafcode.konsyrros.me"),
+  openGraph: {
+    title: 'LeafCode - Green Code Challenges',
+    description: 'Compete to reduce the carbon footprint of real codebases.',
+    url: 'https://leafcode.konsyrros.me',
+    siteName: 'LeafCode',
+    images: [
+      {
+        url: 'https://leafcode.konsyrros.me/assets/img/opengraph.jpg',
+        width: 1008,
+        height: 630,
+        alt: 'LeafCode - Green Code Challenges',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LeafCode - Green Code Challenges',
+    description: 'Compete to reduce the carbon footprint of real codebases.',
+    images: [
+      {
+        url: 'https://leafcode.konsyrros.me/assets/img/opengraph.jpg',
+        width: 1008,
+        height: 630,
+        alt: 'LeafCode - Green Code Challenges',
+      },
+    ],
+  }
 }
 
 export default function RootLayout({
