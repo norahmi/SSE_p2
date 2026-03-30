@@ -43,6 +43,11 @@ interface SubmitResult {
   message: string
 }
 
+interface SubmissionReceievedResponse {
+  submissionId: number
+  status: 'PENDING' | 'PASSED' | 'FAILED'
+}
+
 interface ChallengeIDEProps {
   challengeId:   number
   allowedLanguages: Language[]        // challenge.languages from DB
@@ -208,7 +213,7 @@ export default function ChallengeIDE({
   // Default to the first language the challenge supports
   const [language, setLanguage]       = useState<Language>(allowedLanguages[0] ?? 'PYTHON')
   const [submitting, setSubmitting]   = useState(false)
-  const [result, setResult]           = useState<SubmitResult | null>(null)
+  const [result, setResult]           = useState<SubmissionReceievedResponse | null>(null)
   const [langOpen, setLangOpen]       = useState(false)
 
   const editorRef  = useRef<HTMLDivElement>(null)
@@ -253,13 +258,12 @@ export default function ChallengeIDE({
     setResult(null)
 
     try {
-      const res = await fetch(`/challenges/${challengeId}/submit`, {
+      const res = await fetch(`/api/challenges/submit`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Send language in uppercase to match the Prisma enum
-        body: JSON.stringify({ code, language }),
+        body: JSON.stringify({ challengeId, code, language: language.toUpperCase() }),
       })
-      const data: SubmitResult = await res.json()
+      const data: SubmissionReceievedResponse = await res.json()
       setResult(data)
       setTimeout(() => {
         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' })
@@ -337,23 +341,25 @@ export default function ChallengeIDE({
                      duration-500 border-[#1e3a2a]"
         >
           <div className={`flex items-center gap-3 px-5 py-4 border-b border-[#1e3a2a]
-            ${result.passed ? 'bg-[#28eb70]/6' : 'bg-red-400/5'}`}>
-            {result.passed
+            ${result.status === 'PENDING' ? 'bg-yellow-400/5' : result.status === 'PASSED' ? 'bg-[#28eb70]/6' : 'bg-red-400/5'}`}>
+            {/* {result.passed
               ? <CheckCircle className="h-5 w-5 text-[#28eb70] shrink-0" />
               : <XCircle     className="h-5 w-5 text-red-400 shrink-0"   />
-            }
+            } */}
+              <Loader2 className={`h-5 w-5 shrink-0 ${result.status === 'PENDING' ? 'text-yellow-400 animate-spin' : result.status === 'PASSED' ? 'text-[#28eb70]' : 'text-red-400'}`} />
             <div>
               <p className={`font-['Space_Mono',monospace] text-sm font-bold
-                ${result.passed ? 'text-[#28eb70]' : 'text-red-400'}`}>
-                {result.passed ? 'Challenge Passed!' : 'Not quite — try again'}
+                ${result.status === 'PENDING' ? 'text-yellow-400' : result.status === 'PASSED' ? 'text-[#28eb70]' : 'text-red-400'}`}>
+                {result.status === 'PENDING' ? 'Submission received, grading in progress…' : result.status === 'PASSED' ? 'All tests passed! 🎉' : 'Some tests failed.'}
               </p>
-              <p className="font-['Space_Mono',monospace] text-xs text-slate-500 mt-0.5">
+              {/* <p className="font-['Space_Mono',monospace] text-xs text-slate-500 mt-0.5">
                 {result.message}
-              </p>
+              </p> */}
             </div>
-            {result.passed && (
+            {result.status === 'PASSED' && (
               <span className="ml-auto font-['Space_Mono',monospace] text-2xl font-bold text-[#28eb70]">
-                +{result.score.toLocaleString()}
+                {/* +{result.score.toLocaleString()} */}
+                🎉
               </span>
             )}
           </div>
@@ -365,8 +371,10 @@ export default function ChallengeIDE({
               // { icon: Leaf, label: 'CO₂ saved',         value: `${result.co2Saved} g`,        color: 'text-emerald-400' },
               { icon: Zap,  label: 'Energy reduction', value: `0%`,  color: 'text-[#28eb70]'   },
               { icon: Leaf, label: 'CO₂ saved',         value: `0 g`,        color: 'text-emerald-400' },
-              { icon: Zap,  label: 'Your energy',       value: `${result.yourEnergy} mWh`,    color: 'text-slate-300'   },
-              { icon: Zap,  label: 'Exec time',         value: `${result.executionTime}s`,    color: 'text-slate-300'   },
+              // { icon: Zap,  label: 'Your energy',       value: `${result.yourEnergy} mWh`,    color: 'text-slate-300'   },
+              // { icon: Zap,  label: 'Exec time',         value: `${result.executionTime}s`,    color: 'text-slate-300'   },
+              { icon: Zap,  label: 'Your energy',       value: `0 mWh`,    color: 'text-slate-300'   },
+              { icon: Zap,  label: 'Exec time',         value: `0s`,    color: 'text-slate-300'   },
             ].map(({ icon: Icon, label, value, color }) => (
               <div key={label} className="flex flex-col gap-1 px-5 py-4">
                 <div className="flex items-center gap-1.5">
