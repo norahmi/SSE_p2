@@ -75,6 +75,7 @@ def load_model():
 def estimate_power(cpu_percent):
     if PREDICTIONS is None:
         load_model()
+    assert PREDICTIONS is not None, "Model not loaded"
     cpu_int = max(0, min(100, int(round(cpu_percent))))
     return PREDICTIONS[float(cpu_int)]
 
