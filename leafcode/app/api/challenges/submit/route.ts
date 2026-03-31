@@ -161,6 +161,7 @@ export async function POST(
     },
     runtime: 'python3.13',
     timeout: 300000, // 5 minutes
+    networkPolicy: 'deny-all',
   });
 
   return NextResponse.json({
