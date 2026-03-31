@@ -39,10 +39,10 @@ def _build_input_payload():
     parser.add_argument('-f', '--file', help='Path to source code file')
 
     args = parser.parse_args()
-    stdin_text = sys.stdin.read()
 
     # JSON mode: no CLI args, full request from stdin
     if len(sys.argv) == 1:
+        stdin_text = sys.stdin.read()
         if not stdin_text.strip():
             raise ValueError('No input provided. Pass JSON via stdin or use CLI arguments.')
         try:
@@ -82,6 +82,9 @@ def _build_input_payload():
         source_file = args.file
         code = None
     else:
+        if sys.stdin.isatty():
+            raise ValueError('Provide code via stdin or use --file <path>')
+        stdin_text = sys.stdin.read()
         if not stdin_text.strip():
             raise ValueError('Provide code via stdin or use --file <path>')
         code = stdin_text
