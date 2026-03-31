@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *.so
 *.egg-info/
+venv/
+.venv/
 
 # Cloud Energy
-lib/cloud-energy/*.pyc
+*.pyc
