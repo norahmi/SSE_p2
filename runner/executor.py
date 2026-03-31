@@ -137,5 +137,13 @@ def execute_with_monitoring(code, language):
 
 if __name__ == '__main__':
     input_data = json.loads(sys.stdin.read())
+    
+    if 'code' not in input_data or 'language' not in input_data or 'submissionId' not in input_data:
+        print(json.dumps({'status': 'error', 'error': 'Missing required fields'}))
+        sys.exit(1)
+        
     result = execute_with_monitoring(input_data['code'], input_data['language'])
+    
+    result['submissionId'] = input_data['submissionId']
+    
     print(json.dumps(result))
