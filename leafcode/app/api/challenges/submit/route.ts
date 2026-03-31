@@ -64,13 +64,6 @@ async function parseSubmissionBody(req: NextRequest): Promise<SubmissionBody | n
 export async function POST(
   req: NextRequest,
 ) {
-  // Authenticate
-  // Validate submission validity and challenge existence
-  // Create submission record with status 'PENDING'
-  // Put code in blob storage and save reference in submission record
-  // Trigger async grading process in sandbox
-  // Return submission receipt with submission ID and initial status
-
   const session = await auth.api.getSession({
       headers: await headers()
   })
@@ -157,8 +150,6 @@ export async function POST(
 
     return NextResponse.json({ error: 'Failed to store submission code' }, { status: 500 });
   }
-  
-  // TODO: Invoke sandbox grading process asynchronously.
 
   const sandbox = await Sandbox.create({
     source: {

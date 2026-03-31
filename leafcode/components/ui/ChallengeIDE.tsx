@@ -349,11 +349,11 @@ export default function ChallengeIDE({
             <div>
               <p className={`font-['Space_Mono',monospace] text-sm font-bold
                 ${result.passed ? 'text-[#28eb70]' : 'text-red-400'}`}>
-                {result.passed ? 'All tests passed! 🎉' : 'Some tests failed.'}
+                {result.passed ? 'Challenge Passed!' : 'Not quite - try again!'}
               </p>
-              {/* <p className="font-['Space_Mono',monospace] text-xs text-slate-500 mt-0.5">
+              <p className="font-['Space_Mono',monospace] text-xs text-slate-500 mt-0.5">
                 {result.message}
-              </p> */}
+              </p>
             </div>
             {result.passed && (
               <span className="ml-auto font-['Space_Mono',monospace] text-2xl font-bold text-[#28eb70]">
