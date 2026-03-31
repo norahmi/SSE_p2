@@ -8,9 +8,17 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     headers: await headers()
   })
 
+  const navbarSession = {
+    user: {
+      name: session?.user.name ?? '',
+      email: session?.user.email ?? '',
+      image: session?.user.image ?? `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${session?.user.id ?? 'guest'}`,
+    }
+  }
+
   return (
     <>
-      <Navbar session={session} />
+      <Navbar session={session && navbarSession} />
       {children}
     </>
   )

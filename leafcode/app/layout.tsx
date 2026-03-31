@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Space_Mono, Inter } from 'next/font/google'
-import Navbar from '@/components/ui/Navbar'
 import './globals.css'
 
 const spaceMono = Space_Mono({
