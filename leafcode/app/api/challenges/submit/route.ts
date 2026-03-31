@@ -19,6 +19,15 @@ interface SubmissionResult {
   message: string
 }
 
+interface GradingResult {
+  submissionId: string
+  status: "accepted" | "timeout" | "error"
+  energyJoules: number 
+  executionTimeMs: number
+  avgPowerWatts: number
+  numReadings: number
+}
+
 const ALLOWED_LANGUAGES = ['PYTHON', 'CPP', 'C', 'JAVASCRIPT'] as const
 type SubmissionLanguage = (typeof ALLOWED_LANGUAGES)[number]
 
@@ -160,12 +169,64 @@ export async function POST(
       vcpus: 1,
     },
     runtime: 'python3.13',
-    timeout: 300000, // 5 minutes
+    timeout: 120000, // 2 minutes
     networkPolicy: 'deny-all',
   });
 
-  return NextResponse.json({
-    submissionId: submission.id,
-    status: submission.status,
+  const contentBuffer = Buffer.from(blobContent, 'utf-8');
+
+  await sandbox.writeFiles([{
+    path: `/tmp/${submission.id}`,
+    content: contentBuffer,
+  }]).catch(err => {
+    console.error('Failed to write code to sandbox:', err);
+    return NextResponse.json({ error: 'Failed to prepare grading environment' }, { status: 500 });
   });
+
+  const gradingResult = await sandbox.runCommand({
+    cwd: '/vercel/sandbox/leafcode/runner',
+    cmd: 'python3',
+    args: ['executor.py', '-s', submission.id, '-l', submissionBody.language.toLowerCase(), '-f', `/tmp/${submission.id}`]
+  });
+
+  if (gradingResult.exitCode !== 0) {
+    await sandbox.stop();
+    console.error('Grading process failed:', gradingResult);
+    return NextResponse.json({ error: 'Grading process failed' }, { status: 500 });
+  }
+
+  const stdout = await gradingResult.output("stdout");
+
+  await sandbox.stop();
+
+  let gradingOutput: GradingResult;
+
+  try {
+    gradingOutput = JSON.parse(stdout) as GradingResult;
+  } catch (err) {
+    console.error('Failed to parse grading output:', err);
+    return NextResponse.json({ error: 'Failed to parse grading results' }, { status: 500 });
+  }
+
+  if (gradingOutput.status !== "accepted") {
+    console.error('Submission rejected by grading process:', gradingOutput);
+    return NextResponse.json({ error: 'Submission rejected by grading process', details: gradingOutput }, { status: 400 });
+  }
+
+  await prisma.userChallenge.update({
+    where: { id: submission.id },
+    data: {
+      energyConsumed: gradingOutput.energyJoules,
+    }
+  });
+  
+  const returnResult:SubmissionResult = {
+    passed: gradingOutput.status === "accepted",
+    score: gradingOutput.status === "accepted" ? 100 : 0, // Placeholder scoring logic
+    executionTime: Math.round(gradingOutput.executionTimeMs / 1000),
+    yourEnergy: Math.round((gradingOutput.energyJoules / 3.6) * 100) / 100,
+    message: gradingOutput.status === "accepted" ? "Submission accepted!" : "Submission rejected."
+  };
+
+  return NextResponse.json(returnResult);
 }
