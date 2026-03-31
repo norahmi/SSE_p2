@@ -179,7 +179,7 @@ function ChallengeLeaderboard({
                     {LANG_META[entry.language]?.label ?? entry.language}
                   </Badge>
                   <span className="font-['Space_Mono',monospace] text-[9px] text-slate-600">
-                    {new Date(entry.submittedAt).toLocaleDateString()}
+                    {new Date(entry.submittedAt).toISOString().split('T')[0]}
                   </span>
                 </div>
               </div>

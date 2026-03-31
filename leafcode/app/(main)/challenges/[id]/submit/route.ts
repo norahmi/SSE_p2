@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { runFunctionalTests, type FunctionalTestCase } from '@/lib/execution/test-runner'
+import { measureEnergy } from '@/lib/execution/energy-executor'
 import type { RunnerLanguage } from '@/lib/execution/templates'
 
 export const runtime = 'nodejs'
@@ -87,11 +88,11 @@ function getHiddenTestCases(
   seed: number
 ): FunctionalTestCase[] | null {
   const rng = createRng(seed)
+  const caseCount = 20
 
   if (assignmentId === 1) {
     const testCases: FunctionalTestCase[] = []
-    const count = 3
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < caseCount; i++) {
       const payload = randomWord(rng, randInt(rng, 3, 9)).toLowerCase()
       const delay = randInt(rng, 0, 30)
       testCases.push({
@@ -103,32 +104,36 @@ function getHiddenTestCases(
   }
 
   if (assignmentId === 3) {
-    const knownCount = 8
-    const queryCount = 10
-    const known = Array.from({ length: knownCount }, () => buildRandomRoute(rng))
-    const queries: string[] = []
+    const testCases: FunctionalTestCase[] = []
+    for (let t = 0; t < caseCount; t++) {
+      const knownCount = randInt(rng, 6, 12)
+      const queryCount = randInt(rng, 8, 14)
+      const known = Array.from({ length: knownCount }, () => buildRandomRoute(rng))
+      const queries: string[] = []
 
-    for (let i = 0; i < queryCount; i++) {
-      if (rng() < 0.6) {
-        const route = known[randInt(rng, 0, known.length - 1)]
-        const parts = route.split('.')
-        const keep = randInt(rng, 1, parts.length)
-        queries.push(parts.slice(0, keep).join('.'))
-      } else {
-        queries.push(buildRandomRoute(rng))
+      for (let i = 0; i < queryCount; i++) {
+        if (rng() < 0.6) {
+          const route = known[randInt(rng, 0, known.length - 1)]
+          const parts = route.split('.')
+          const keep = randInt(rng, 1, parts.length)
+          queries.push(parts.slice(0, keep).join('.'))
+        } else {
+          queries.push(buildRandomRoute(rng))
+        }
       }
-    }
 
-    const expected = queries.filter((q) => known.some((k) => k.startsWith(q))).length
-    return [{
-      stdin: `${known.length}\n${known.join('\n')}\n${queries.length}\n${queries.join('\n')}\n`,
-      expectedStdout: String(expected),
-    }]
+      const expected = queries.filter((q) => known.some((k) => k.startsWith(q))).length
+      testCases.push({
+        stdin: `${known.length}\n${known.join('\n')}\n${queries.length}\n${queries.join('\n')}\n`,
+        expectedStdout: String(expected),
+      })
+    }
+    return testCases
   }
 
   if (assignmentId === 4) {
     const testCases: FunctionalTestCase[] = []
-    for (let t = 0; t < 3; t++) {
+    for (let t = 0; t < caseCount; t++) {
       const n = randInt(rng, 6, 16)
       const k = randInt(rng, 1, n)
       const arr = Array.from({ length: n }, () => randInt(rng, -5, 20))
@@ -151,7 +156,7 @@ function getHiddenTestCases(
 
   if (assignmentId === 5) {
     const testCases: FunctionalTestCase[] = []
-    for (let t = 0; t < 3; t++) {
+    for (let t = 0; t < caseCount; t++) {
       const r = randInt(rng, 1, 4)
       const c = randInt(rng, 1, 4)
       const grid = Array.from({ length: r }, () => Array.from({ length: c }, () => randInt(rng, -9, 9)))
@@ -167,7 +172,7 @@ function getHiddenTestCases(
 
   if (assignmentId === 6) {
     const testCases: FunctionalTestCase[] = []
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < caseCount; i++) {
       const score = randInt(rng, 0, 120)
       testCases.push({
         stdin: `${score}\n`,
@@ -179,7 +184,7 @@ function getHiddenTestCases(
 
   if (assignmentId === 7) {
     const testCases: FunctionalTestCase[] = []
-    for (let t = 0; t < 2; t++) {
+    for (let t = 0; t < caseCount; t++) {
       const n = randInt(rng, 5, 9)
       const d = randInt(rng, 2, 7)
       const asteroids = Array.from({ length: n }, () => [randInt(rng, -12, 12), randInt(rng, -12, 12)] as const)
@@ -288,11 +293,26 @@ export async function POST(
     studentCode: body.code,
     testCases,
   })
-  const executionTime = Number(((Date.now() - startedAt) / 1000).toFixed(3))
 
   const passed = functional.passed
   const score = passed ? 100 : 0
   const status: AppSubmissionStatus = passed ? 'PASSED' : 'FAILED'
+
+  // Measure energy consumption if functional tests passed
+  let energyConsumed = 0
+  let energyMessage = ''
+  if (passed) {
+    const energyResult = await measureEnergy(body.code, runnerLanguage)
+    if (energyResult.status === 'accepted') {
+      energyConsumed = energyResult.energyJoules
+      console.info(`[leafcode-energy] challenge=${challengeId} user=${session.user.id} energy=${energyConsumed}J`)
+    } else {
+      energyMessage = ' (Energy measurement failed)'
+      console.warn(`[leafcode-energy] challenge=${challengeId} error: status=${energyResult.status}`)
+    }
+  }
+
+  const executionTime = Number(((Date.now() - startedAt) / 1000).toFixed(3))
 
   await prisma.$transaction([
     prisma.userChallenge.create({
@@ -301,7 +321,7 @@ export async function POST(
         challengeId,
         score,
         language,
-        energyConsumed: 0,
+        energyConsumed,
         co2Consumed: 0,
         status,
         code: body.code,
@@ -320,9 +340,9 @@ export async function POST(
     passed,
     score,
     executionTime,
-    yourEnergy: 0,
+    yourEnergy: energyConsumed,
     message: passed
-      ? 'All functional tests passed. Sent to energy testing queue.'
+      ? `All functional tests passed. Energy consumed: ${energyConsumed.toFixed(2)}J.${energyMessage}`
       : (functional.compileStderr || functional.stderr || functional.message),
   }))
 }
