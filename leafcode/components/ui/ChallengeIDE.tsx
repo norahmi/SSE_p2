@@ -117,7 +117,7 @@ function ChallengeLeaderboard({
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => setFilter('ALL')}
-            className={`px-2 py-0.5 rounded text-[9px] font-bold font-['Space_Mono',monospace] border transition-colors
+            className={`px-2 py-0.5 rounded text-[9px] font-bold font-['Space_Mono',monospace] border transition-colors cursor-pointer
               ${filter === 'ALL'
                 ? 'border-[#28eb70]/30 text-[#28eb70] bg-[#28eb70]/8'
                 : 'border-[#1e3a2a] text-slate-600 hover:text-slate-400'}`}
@@ -129,7 +129,7 @@ function ChallengeLeaderboard({
             <button
               key={lang}
               onClick={() => setFilter(lang)}
-              className={`px-2 py-0.5 rounded text-[9px] font-bold font-['Space_Mono',monospace] border transition-colors
+              className={`px-2 py-0.5 rounded text-[9px] font-bold font-['Space_Mono',monospace] border transition-colors cursor-pointer
                 ${filter === lang
                   ? LANG_META[lang].color
                   : 'border-[#1e3a2a] text-slate-600 hover:text-slate-400'}`}
@@ -283,7 +283,7 @@ export default function ChallengeIDE({
             <button
               onClick={() => setLangOpen(o => !o)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#1e3a2a]
-                         bg-[#060f0a] hover:border-[#28eb70]/30 transition-colors"
+                         bg-[#060f0a] hover:border-[#28eb70]/30 transition-colors cursor-pointer"
             >
               <span className={`font-['Space_Mono',monospace] text-xs font-bold
                                 ${LANG_META[language]?.color.split(' ')[1] ?? 'text-slate-400'}`}>
@@ -300,7 +300,7 @@ export default function ChallengeIDE({
                     key={lang}
                     onClick={() => { setLanguage(lang); setLangOpen(false) }}
                     className={`w-full text-left px-3 py-2 font-['Space_Mono',monospace] text-xs
-                                transition-colors hover:bg-[#28eb70]/5
+                                transition-colors hover:bg-[#28eb70]/5 cursor-pointer
                                 ${language === lang ? 'text-[#28eb70]' : 'text-slate-400'}`}
                   >
                     {LANG_META[lang]?.label ?? lang}
@@ -315,7 +315,7 @@ export default function ChallengeIDE({
             onClick={handleSubmit}
             disabled={submitting}
             className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-[#28eb70] text-[#060f0a]
-                       font-['Space_Mono',monospace] text-xs font-bold
+                       font-['Space_Mono',monospace] text-xs font-bold cursor-pointer
                        disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#20d063] transition-colors"
           >
             {submitting

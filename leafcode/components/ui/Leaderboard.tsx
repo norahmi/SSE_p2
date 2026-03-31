@@ -62,7 +62,7 @@ export default function Leaderboard({ entries, currentUserId }: LeaderboardProps
         <div className="relative">
           <button
             onClick={() => setDropOpen(o => !o)}
-            className="flex items-center gap-2 rounded-lg px-3 py-1.5 font-['Space_Mono',monospace] text-[10px] uppercase tracking-wider transition-colors"
+            className="flex items-center gap-2 rounded-lg px-3 py-1.5 font-['Space_Mono',monospace] text-[10px] uppercase tracking-wider transition-colors cursor-pointer"
             style={{
               border:     '1px solid var(--lc-border)',
               color:      'var(--lc-text-muted)',
@@ -89,7 +89,7 @@ export default function Leaderboard({ entries, currentUserId }: LeaderboardProps
                 <li key={lang.value}>
                   <button
                     onClick={() => { setFilter(lang.value); setDropOpen(false) }}
-                    className="w-full text-left px-3 py-2 font-['Space_Mono',monospace] text-[10px] uppercase tracking-wider transition-colors"
+                    className="w-full text-left px-3 py-2 font-['Space_Mono',monospace] text-[10px] uppercase tracking-wider transition-colors cursor-pointer"
                     style={{
                       color:      filter === lang.value ? 'var(--lc-green)' : 'var(--lc-text-muted)',
                       background: filter === lang.value

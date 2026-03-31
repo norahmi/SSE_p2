@@ -101,7 +101,7 @@ export default function Navbar({ session }: { session: Session }) {
               </Link>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/10 transition-colors"
+                className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/10 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
                 Logout
@@ -122,7 +122,7 @@ export default function Navbar({ session }: { session: Session }) {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden text-slate-400 hover:text-slate-100 transition-colors"
+          className="md:hidden text-slate-400 hover:text-slate-100 transition-colors cursor-pointer"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
@@ -168,7 +168,7 @@ export default function Navbar({ session }: { session: Session }) {
                   </Link>
                   <button
                     onClick={() => { setMenuOpen(false); handleSignOut() }}
-                    className="w-full flex items-center gap-2 px-4 py-2 rounded-md text-sm font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-colors mt-2"
+                    className="cursor-pointer w-full flex items-center gap-2 px-4 py-2 rounded-md text-sm font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-colors mt-2"
                   >
                     <LogOut className="h-4 w-4" />
                     Logout
