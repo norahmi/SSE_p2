@@ -28,8 +28,6 @@ def load_model():
     if MODEL is not None:
         return MODEL, PREDICTIONS
     
-    print("[Model] Loading...", file=sys.stderr, flush=True)
-    
     data_path = os.path.join(os.path.dirname(__file__), 'data', 'spec_data_cleaned.csv')
     df = pd.read_csv(data_path)
     
@@ -69,7 +67,6 @@ def load_model():
     MODEL = model
     PREDICTIONS = predictions
     
-    print("[Model] Ready", file=sys.stderr, flush=True)
     return model, predictions
 
 def estimate_power(cpu_percent):
@@ -107,7 +104,13 @@ def execute_with_monitoring(code, language):
         
         start_time = time.time()
         cmd = ['python3', code_file] if language == 'python' else ['node', code_file]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        result = subprocess.run(
+            cmd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=60,
+        )
         execution_time = int((time.time() - start_time) * 1000)
         
         stop_event.set()
@@ -121,9 +124,7 @@ def execute_with_monitoring(code, language):
             'energyJoules': round(total_energy, 2),
             'executionTimeMs': execution_time,
             'avgPowerWatts': round(avg_power, 2),
-            'numReadings': len(energy_readings),
-            'output': result.stdout,
-            'stderr': result.stderr if result.returncode != 0 else None
+            'numReadings': len(energy_readings)
         }
         
     except subprocess.TimeoutExpired:
