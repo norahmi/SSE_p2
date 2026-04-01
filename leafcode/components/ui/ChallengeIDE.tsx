@@ -33,7 +33,7 @@ export interface ChallengeSubmission {
   userAvatar: string
   language: Language
   score: number
-  submittedAt: string      // ISO string
+  submittedAt: string
 }
 
 interface SubmitResult {
@@ -191,10 +191,6 @@ function ChallengeLeaderboard({
               <div className="flex flex-col items-end shrink-0 gap-0.5">
                 <span className="font-['Space_Mono',monospace] text-xs font-bold text-slate-100">
                   {entry.score.toLocaleString()}
-                </span>
-                <span className="font-['Space_Mono',monospace] text-[9px] text-[#28eb70]/60">
-                  {/* −{entry.energyReduction}% */}
-                  −0%
                 </span>
               </div>
             </li>
@@ -388,14 +384,10 @@ export default function ChallengeIDE({
           </div>
 
           {/* Stats grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-[#1e3a2a] bg-[#0a1a10]/40">
+          <div className="grid grid-cols-2 sm:grid-cols-2 divide-x divide-y divide-[#1e3a2a] bg-[#0a1a10]/40">
             {[
-              // { icon: Zap,  label: 'Energy reduction', value: `${result.energyReduction}%`,  color: 'text-[#28eb70]'   },
-              // { icon: Leaf, label: 'CO₂ saved',         value: `${result.co2Saved} g`,        color: 'text-emerald-400' },
-              { icon: Zap,  label: 'Energy reduction', value: `0%`,  color: 'text-[#28eb70]'   },
-              { icon: Leaf, label: 'CO₂ saved',         value: `0 g`,        color: 'text-emerald-400' },
-              { icon: Zap,  label: 'Your energy',       value: `${result.yourEnergy} mWh`,    color: 'text-slate-300'   },
-              { icon: Zap,  label: 'Exec time',         value: `${result.executionTime}s`,    color: 'text-slate-300'   },
+              { icon: Zap,  label: 'Your energy consumption', value: `${result.yourEnergy} mWh`,    color: 'text-slate-300'   },
+              { icon: Zap,  label: 'Execution time', value: `${result.executionTime}s`,    color: 'text-slate-300'   },
             ].map(({ icon: Icon, label, value, color }) => (
               <div key={label} className="flex flex-col gap-1 px-5 py-4">
                 <div className="flex items-center gap-1.5">
@@ -409,31 +401,6 @@ export default function ChallengeIDE({
                 </span>
               </div>
             ))}
-          </div>
-
-          {/* Energy bar comparison */}
-          <div className="px-5 py-4 border-t border-[#1e3a2a] bg-[#0a1a10]/20">
-            <p className="font-['Space_Mono',monospace] text-[10px] text-slate-600 uppercase tracking-wider mb-3">
-              Energy comparison
-            </p>
-            <div className="flex flex-col gap-2">
-              {[
-                // { label: 'Baseline', width: '100%',                            color: 'bg-red-400/40',    val: `${result.baselineEnergy} mWh`, textColor: 'text-slate-500'   },
-                // { label: 'Yours',    width: `${100 - result.energyReduction}%`, color: 'bg-[#28eb70]/70', val: `${result.yourEnergy} mWh`,    textColor: 'text-[#28eb70]'  },
-                { label: 'Baseline', width: '100%',                            color: 'bg-red-400/40',    val: `0 mWh`, textColor: 'text-slate-500'   },
-                { label: 'Yours',    width: `0%`, color: 'bg-[#28eb70]/70', val: `${result.yourEnergy} mWh`,    textColor: 'text-[#28eb70]'  },
-              ].map(({ label, width, color, val, textColor }) => (
-                <div key={label} className="flex items-center gap-3">
-                  <span className="font-['Space_Mono',monospace] text-[10px] text-slate-500 w-16 shrink-0">{label}</span>
-                  <div className="flex-1 h-3 rounded-full bg-[#1e3a2a] overflow-hidden">
-                    <div className={`h-full rounded-full ${color} transition-all duration-1000`} style={{ width }} />
-                  </div>
-                  <span className={`font-['Space_Mono',monospace] text-[10px] ${textColor} w-14 text-right shrink-0`}>
-                    {val}
-                  </span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       )}

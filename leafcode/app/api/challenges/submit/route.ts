@@ -284,7 +284,7 @@ export async function POST(
 
   const challenge = await prisma.challenge.findUnique({
     where: { id: challengeId },
-    select: { id: true, languages: true },
+    select: { id: true, languages: true, difficulty: true },
   })
 
   if (!challenge) {
@@ -348,6 +348,14 @@ export async function POST(
       { status: 500 }
     )
   }
+
+  // Score mapping
+  const difficultyMaxPoints: Record<string, number> = {
+    HARD: 1000,
+    MEDIUM: 750,
+    EASY: 500
+  };
+  const maxPoints = difficultyMaxPoints[challenge.difficulty] || 500;
 
   const submission = await prisma.userChallenge.create({
     data: {
@@ -479,13 +487,15 @@ export async function POST(
   const roundedEnergyJ = Math.max(0, Math.round(totalEnergyJ))
   const yourEnergyMwh = Math.round((totalEnergyJ / 3.6) * 100) / 100
   const executionTime = Number(((Date.now() - startedAt) / 1000).toFixed(3))
+  const energyAccepted = !energyError && runnerLanguage === 'PYTHON'
+  const finalScore = energyAccepted ? Math.max(1, maxPoints - roundedEnergyJ) : 0
 
   await prisma.$transaction([
     prisma.userChallenge.update({
       where: { id: submission.id },
       data: {
-        status: 'PASSED' as AppSubmissionStatus,
-        score: 100,
+        status: (energyAccepted ? 'PASSED' : 'FAILED') as AppSubmissionStatus,
+        score: finalScore,
         energyConsumed: roundedEnergyJ,
       },
     }),
@@ -495,13 +505,13 @@ export async function POST(
     }),
     prisma.user.update({
       where: { id: session.user.id },
-      data: { totScore: { increment: 100 } },
+      data: { totScore: { increment: finalScore } },
     }),
   ])
 
   const returnResult: SubmissionResult = {
-    passed: true,
-    score: 100,
+    passed: energyAccepted,
+    score: finalScore,
     executionTime,
     yourEnergy: yourEnergyMwh,
     message: energyError
