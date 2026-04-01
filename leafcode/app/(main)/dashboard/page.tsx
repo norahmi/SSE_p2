@@ -48,7 +48,7 @@ async function getUser(session: SessionType): Promise<User> {
       // Count their passed submissions for challengesCompleted
       challenges: {
         where:  { status: 'PASSED' },
-        select: { language: true, co2Consumed: true },
+        select: { language: true},
       },
     },
   })
@@ -61,7 +61,6 @@ async function getUser(session: SessionType): Promise<User> {
   })
   const rank = usersAhead + 1
 
-  const totalCO2Consumed = dbUser.challenges.reduce((sum, c) => sum + c.co2Consumed, 0)
 
   const langCount: Record<string, number> = {}
   for (const c of dbUser.challenges) {
@@ -78,7 +77,6 @@ async function getUser(session: SessionType): Promise<User> {
     rank,
     totScore:                dbUser.totScore,
     challengesCompleted:  dbUser.challenges.length,
-    totalCO2Consumed,
     topLanguage,
     streak:               0, // TODO?
   }
@@ -96,7 +94,7 @@ async function getLeaderboard(): Promise<LeaderboardEntry[]> {
       totScore: true,
       challenges: {
         where:  { status: 'PASSED' },
-        select: { language: true, co2Consumed: true },
+        select: { language: true},
       },
     },
   })
@@ -108,7 +106,6 @@ async function getLeaderboard(): Promise<LeaderboardEntry[]> {
       langCount[c.language] = (langCount[c.language] ?? 0) + 1
     }
     const topLanguage = Object.entries(langCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'N/A'
-    const totalCO2Consumed = u.challenges.reduce((sum, c) => sum + c.co2Consumed, 0)
     const delta: 'up' | 'down' | 'same' = 'same' // TODO: track previous rank to compute this
 
     return {
@@ -118,7 +115,6 @@ async function getLeaderboard(): Promise<LeaderboardEntry[]> {
       rank:                index + 1,
       totScore:               u.totScore,
       challengesCompleted: u.challenges.length,
-      totalCO2Consumed,
       topLanguage,
       delta
     }
@@ -145,7 +141,6 @@ async function getActivity(userId: string): Promise<ActivityEntry[]> {
     submittedAt:     timeAgo(s.submittedAt),
     totScore:           s.score,
     status:          s.status.toLowerCase() as 'passed' | 'failed' | 'pending',
-    co2Consumed:     s.co2Consumed || 0,
     energyReduction: 0, // TODO: compute this based on a baseline per language
   }))
 }

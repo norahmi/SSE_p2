@@ -65,7 +65,6 @@ model UserChallenge {
   score           Int
   language        Language
   energyConsumed  Int
-  co2Consumed     Int
   status          SubmissionStatus @default(PENDING)
   submittedAt     DateTime         @default(now())
   code            String

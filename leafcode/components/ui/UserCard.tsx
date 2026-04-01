@@ -10,7 +10,6 @@ interface UserCardProps {
 const STAT_ITEMS = (user: User) => [
   { value: `#${user.rank}`,                                   label: 'Global rank' },
   { value: user.totScore,                    label: 'Score'       },
-  { value: `${(user.totalCO2Consumed / 1000).toFixed(1)}`,      label: 'kg CO₂'    },
   { value: String(user.challengesCompleted),                  label: 'Challenges'  },
 ]
 

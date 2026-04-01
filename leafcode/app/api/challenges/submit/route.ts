@@ -110,7 +110,6 @@ export async function POST(
       code: '',
       language: submissionBody.language,
       status: 'PENDING',
-      co2Consumed: 0,
       energyConsumed: 0,
       score: 0,
     }
