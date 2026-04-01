@@ -7,7 +7,7 @@ import { put, del } from '@vercel/blob'
 import { Sandbox } from '@vercel/sandbox'
 import { runFunctionalTests, type FunctionalTestCase } from '@/lib/execution/test-runner'
 import { measureEnergy } from '@/lib/execution/energy-executor'
-import type { RunnerLanguage } from '@/lib/execution/templates'
+import { getRunnerLayout, type RunnerLanguage } from '@/lib/execution/templates'
 
 type AppSubmissionStatus = 'PENDING' | 'PASSED' | 'FAILED'
 
@@ -447,62 +447,75 @@ export async function POST(
     networkPolicy: 'deny-all',
   })
 
-  const contentBuffer = Buffer.from(blobContent, 'utf-8')
+  let totalEnergyJ = 0
+  let energyError = ''
 
-  await sandbox.writeFiles([{
-    path: `/tmp/${submission.id}`,
-    content: contentBuffer,
-  }]).catch(err => {
-    console.error('Failed to write code to sandbox:', err)
-    return NextResponse.json({ error: 'Failed to prepare grading environment' }, { status: 500 })
-  })
+  if (runnerLanguage === 'PYTHON') {
+    const layout = getRunnerLayout(runnerLanguage, challengeId)
+    const runDir = `/tmp/${submission.id}`
+    const driverPath = `${runDir}/${layout.driverFileName}`
 
-  const gradingResult = await sandbox.runCommand({
-    cwd: '/vercel/sandbox/leafcode/runner',
-    cmd: 'python3',
-    args: ['executor.py', '-s', submission.id, '-l', submissionBody.language.toLowerCase(), '-f', `/tmp/${submission.id}`],
-  })
+    const files = [
+      { path: `${runDir}/${layout.studentFileName}`, content: Buffer.from(blobContent, 'utf-8') },
+      { path: driverPath, content: Buffer.from(layout.driverSource, 'utf-8') },
+      ...layout.supportFiles.map((f) => ({ path: `${runDir}/${f.fileName}`, content: Buffer.from(f.content, 'utf-8') })),
+    ]
 
-  if (gradingResult.exitCode !== 0) {
-    await sandbox.stop()
-    await prisma.userChallenge.update({
-      where: { id: submission.id },
-      data: { status: 'FAILED' as AppSubmissionStatus },
-    })
-    console.error('Grading process failed:', gradingResult)
-    return NextResponse.json({ error: 'Grading process failed' }, { status: 500 })
+    await sandbox.mkDir(runDir).catch(() => undefined)
+    await sandbox.writeFiles(files)
+
+    for (let i = 0; i < testCases.length; i++) {
+      console.log(`Energy grading progress: test ${i + 1}/${testCases.length}`)
+      const stdinPath = `${runDir}/stdin_${i}.txt`
+      const stdinPayload = `${challengeId}\n${testCases[i].stdin}`
+      await sandbox.writeFiles([{ path: stdinPath, content: Buffer.from(stdinPayload, 'utf-8') }])
+
+      const gradingResult = await sandbox.runCommand({
+        cwd: '/vercel/sandbox/leafcode/runner',
+        cmd: 'python3',
+        args: [
+          'executor.py',
+          '-s', `${submission.id}-${i}`,
+          '-l', 'python',
+          '-f', driverPath,
+          '--stdin-file', stdinPath,
+        ],
+      })
+
+      if (gradingResult.exitCode !== 0) {
+        console.error(`Energy grading failed at test ${i + 1}/${testCases.length}`)
+        energyError = 'Sandbox energy command failed.'
+        break
+      }
+
+      const stdout = await gradingResult.output('stdout')
+      let gradingOutput: GradingResult
+      try {
+        gradingOutput = JSON.parse(stdout) as GradingResult
+      } catch {
+        energyError = 'Failed to parse sandbox energy output.'
+        break
+      }
+
+      if (gradingOutput.status !== 'accepted') {
+        energyError = gradingOutput.error ?? 'Sandbox energy execution failed.'
+        break
+      }
+
+      totalEnergyJ += Number(gradingOutput.energyJoules ?? 0)
+    }
+
+    if (!energyError) {
+      console.log(`Energy grading completed: ${testCases.length}/${testCases.length} tests`)
+    }
+  } else {
+    energyError = 'Energy measurement is currently available for Python only.'
   }
-
-  const stdout = await gradingResult.output('stdout')
 
   await sandbox.stop()
 
-  let gradingOutput: GradingResult
-
-  try {
-    gradingOutput = JSON.parse(stdout) as GradingResult
-  } catch (err) {
-    console.error('Failed to parse grading output:', err)
-    return NextResponse.json({ error: 'Failed to parse grading results' }, { status: 500 })
-  }
-
-  if (gradingOutput.status !== 'accepted') {
-    await prisma.userChallenge.update({
-      where: { id: submission.id },
-      data: { status: 'FAILED' as AppSubmissionStatus },
-    })
-    const failedResult: SubmissionResult = {
-      passed: false,
-      score: 0,
-      executionTime: Number(((Date.now() - startedAt) / 1000).toFixed(3)),
-      yourEnergy: 0,
-      message: gradingOutput.error ?? 'Submission rejected by grading process.',
-    }
-    return NextResponse.json(failedResult)
-  }
-
-  const roundedEnergyJ = Math.max(0, Math.round(gradingOutput.energyJoules))
-  const yourEnergyMwh = Math.round((gradingOutput.energyJoules / 3.6) * 100) / 100
+  const roundedEnergyJ = Math.max(0, Math.round(totalEnergyJ))
+  const yourEnergyMwh = Math.round((totalEnergyJ / 3.6) * 100) / 100
   const executionTime = Number(((Date.now() - startedAt) / 1000).toFixed(3))
 
   await prisma.$transaction([
@@ -529,7 +542,9 @@ export async function POST(
     score: 100,
     executionTime,
     yourEnergy: yourEnergyMwh,
-    message: `All functional tests passed. Energy consumed: ${gradingOutput.energyJoules.toFixed(2)}J.`,
+    message: energyError
+      ? `All functional tests passed. ${energyError}`
+      : `All functional tests passed. Energy consumed: ${totalEnergyJ.toFixed(2)}J.`,
   }
 
   return NextResponse.json(returnResult)
