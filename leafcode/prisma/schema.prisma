@@ -45,6 +45,7 @@ model Challenge {
   createdAt       DateTime        @default(now())
   languages       Language[]
   submissionCount Int             @default(0)
+  energyTest      String           @default("") @db.Text
   startingCodes   StartingCode[]
 }
 
