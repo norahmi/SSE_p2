@@ -58,7 +58,7 @@ export default function ActivityFeed({ entries }: ActivityFeedProps) {
       </div>
 
       {/* Entries */}
-      <ul style={{ borderColor: 'color-mix(in srgb, var(--lc-border) 60%, transparent)', borderTop: '1px solid var(--lc-border)' }}
+      <ul style={{ borderColor: 'color-mix(in srgb, var(--lc-border) 60%, transparent)', borderTop: entries.length > 0 ? '1px solid var(--lc-border)' : undefined }}
         className="divide-y divide-[var(--lc-border)]/60"
       >
         {entries.map((entry) => {
