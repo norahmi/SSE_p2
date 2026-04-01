@@ -141,7 +141,7 @@ async function getActivity(userId: string): Promise<ActivityEntry[]> {
     submittedAt:     timeAgo(s.submittedAt),
     totScore:           s.score,
     status:          s.status.toLowerCase() as 'passed' | 'failed' | 'pending',
-    energyReduction: 0, // TODO: compute this based on a baseline per language
+    energyConsumption: 0, // TODO: compute this based on a baseline per language
   }))
 }
 

@@ -190,10 +190,6 @@ function ChallengeLeaderboard({
                 <span className="font-['Space_Mono',monospace] text-xs font-bold text-slate-100">
                   {entry.score.toLocaleString()}
                 </span>
-                <span className="font-['Space_Mono',monospace] text-[9px] text-[#28eb70]/60">
-                  {/* −{entry.energyReduction}% */}
-                  −0%
-                </span>
               </div>
             </li>
           ))}

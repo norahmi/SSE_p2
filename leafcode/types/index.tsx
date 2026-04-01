@@ -27,6 +27,6 @@ export interface ActivityEntry {
   language: string             // language used in this submission
   submittedAt: string
   totScore: number
-  energyReduction: number      // also idk about this, it would be interesting to show but "reduction" means that we need a baseline per language.
+  energyConsumption: number
   status: 'passed' | 'failed' | 'pending'
 }
