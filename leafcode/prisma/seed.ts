@@ -10,14 +10,15 @@ const prisma = new PrismaClient({ adapter });
 
 const challenges = [
   {
+    slug: 'the-patience-trap',
     title: 'The Patience Trap',
     difficulty: Difficulty.EASY,
     languages: [Language.PYTHON, Language.CPP, Language.C, Language.JAVASCRIPT],
     description: `
     Concept: Resource Management
 
-    You are programming the Ares I Mars Rover's communication relay. 
-    The orbiter will be in position in exactly delay ms milliseconds. 
+    You are programming the Ares I Mars Rover's communication relay.
+    The orbiter will be in position in exactly delay ms milliseconds.
     You must wait exactly that long to save battery, then encrypt and return the transmission payload.`,
     startingCodes: [
       { language: Language.PYTHON,
@@ -78,14 +79,15 @@ char* wait_and_transmit(void* api, int delay_ms, const char* payload_string) {
   },
 
   {
+    slug: 'the-turbo-trap',
     title: 'The Turbo Trap',
     difficulty: Difficulty.HARD,
     languages: [Language.PYTHON],
     description: `
     Concept: Concurrency Scaling
 
-    A deep space telescope has captured an array of signal frequencies. 
-    You must apply a heavy mathematical smoothing algorithm to every frequency. 
+    A deep space telescope has captured an array of signal frequencies.
+    You must apply a heavy mathematical smoothing algorithm to every frequency.
     The payload sizes vary wildly: sometimes 10 signals, and sometimes 10,000,000.
     `,
     startingCodes: [
@@ -104,14 +106,15 @@ def process_signals(frequencies):
   },
 
   {
+    slug: 'the-telemetry-router',
     title: 'The Telemetry Router',
     difficulty: Difficulty.MEDIUM,
     languages: [Language.PYTHON, Language.CPP, Language.C, Language.JAVASCRIPT],
     description: `
     Concept: Efficient Search Structures
 
-    Your orbital relay processes millions of data packets. 
-    You are given a database of 100,000 known telemetry routes (e.g., "MARS.BASE.ALPHA") 
+    Your orbital relay processes millions of data packets.
+    You are given a database of 100,000 known telemetry routes (e.g., "MARS.BASE.ALPHA")
     and an incoming stream of 10,000 partial route queries (e.g., "MARS.BASE").
 
     Return how many queries match the start of a known route.
@@ -179,13 +182,14 @@ function countValidRoutes(knownRoutes, queries) {
   },
 
   {
+    slug: 'the-solar-flare-scanner',
     title: 'The Solar Flare Scanner',
     difficulty: Difficulty.MEDIUM,
     languages: [Language.PYTHON, Language.CPP, Language.C, Language.JAVASCRIPT],
     description: `
     Concept: Redundant Operations
 
-    Your satellite has recorded 1,000,000 seconds of solar radiation data. 
+    Your satellite has recorded 1,000,000 seconds of solar radiation data.
     Find the maximum radiation absorbed in any continuous block of exactly k seconds.
     `,
     startingCodes: [
@@ -249,13 +253,14 @@ function maxRadiationWindow(radiationData, k) {
   },
 
   {
+    slug: 'the-spatial-locality-crisis',
     title: 'The Spatial Locality Crisis',
     difficulty: Difficulty.MEDIUM,
     languages: [Language.CPP],
     description: `
     Concept: Memory Architecture
 
-    You are processing a 2D topographical map of the ocean floor represented as a massive grid. 
+    You are processing a 2D topographical map of the ocean floor represented as a massive grid.
     Calculate the sum of all elevation points.
 
     `,
@@ -277,13 +282,14 @@ long long calculateElevation(const std::vector<std::vector<int>>& grid, int size
   },
 
   {
+    slug: 'the-copy-by-value-sinkhole',
     title: 'The Copy-by-Value Sinkhole',
     difficulty: Difficulty.EASY,
     languages: [Language.CPP],
     description: `
     Concept: Data Duplication
 
-    The central server receives massive user-profile objects from edge nodes. 
+    The central server receives massive user-profile objects from edge nodes.
     Write a function that scans a given profile and returns true if the user’s suspicion score is over 90.
     `,
     startingCodes: [
@@ -303,13 +309,14 @@ bool evaluateProfile(UserProfile profile) {
   },
 
   {
+    slug: 'the-orbital-collision-engine',
     title: 'The Orbital Collision Engine',
     difficulty: Difficulty.HARD,
     languages: [Language.PYTHON, Language.CPP, Language.C, Language.JAVASCRIPT],
     description: `
 Concept: Distance Algorithms
 
-You are tracking 20,000 asteroids in a 2D plane. 
+You are tracking 20,000 asteroids in a 2D plane.
 Find how many pairs of asteroids are dangerously close to each other (distance < D).
     `,
     startingCodes: [
@@ -392,20 +399,55 @@ function countCollisions(asteroids, dangerousDistance) {
 async function main() {
   console.log('Seeding challenges...')
 
-  await prisma.startingCode.deleteMany() 
-  await prisma.challenge.deleteMany()
-
   for (const challenge of challenges) {
     // Destructure to separate the nested array from the main challenge fields
     const { startingCodes, ...challengeData } = challenge;
-    await prisma.challenge.create({
-      data: {
-        ...challengeData,
-        startingCodes: {
-          create: startingCodes
+
+    try {
+      const createdChallenge = await prisma.challenge.upsert({
+        where: { slug: challengeData.slug },
+        update: {
+          title: challengeData.title,
+          description: challengeData.description,
+          difficulty: challengeData.difficulty,
+          languages: challengeData.languages,
+        },
+        create: {
+          ...challengeData,
+          startingCodes: {
+            create: startingCodes
+          }
+        }
+      });
+
+      // Upsert starting codes
+      for (const startingCode of startingCodes) {
+        try {
+          await prisma.startingCode.upsert({
+            where: {
+              challengeId_language: {
+                challengeId: createdChallenge.id,
+                language: startingCode.language
+              }
+            },
+            update: {
+              code: startingCode.code
+            },
+            create: {
+              challengeId: createdChallenge.id,
+              language: startingCode.language,
+              code: startingCode.code
+            }
+          });
+        } catch (error) {
+          console.error(`Error seeding starting code for challenge "${challengeData.slug}" (${startingCode.language}):`, error);
+          throw error;
         }
       }
-    });
+    } catch (error) {
+      console.error(`Error seeding challenge "${challengeData.slug}":`, error);
+      throw error;
+    }
   }
   console.log(`\nSeeded ${challenges.length} challenges.`)
 }
