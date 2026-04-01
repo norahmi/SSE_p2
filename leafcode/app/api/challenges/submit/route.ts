@@ -72,6 +72,7 @@ export async function POST(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+
   const submissionBody = await parseSubmissionBody(req);
   if (!submissionBody) {
     return NextResponse.json(
@@ -96,12 +97,20 @@ export async function POST(
 
   const challenge = await prisma.challenge.findUnique({
     where: { id: challengeId },
-    select: { id: true }
+    select: { id: true, difficulty: true }
   });
 
   if (!challenge) {
     return NextResponse.json({ error: 'Challenge not found' }, { status: 404 });
   }
+
+  // Score mapping
+  const difficultyMaxPoints: Record<string, number> = {
+    HARD: 1000,
+    MEDIUM: 750,
+    EASY: 500
+  };
+  const maxPoints = difficultyMaxPoints[challenge.difficulty] || 500;
 
   const submission = await prisma.userChallenge.create({
     data: {
@@ -203,16 +212,33 @@ export async function POST(
     return NextResponse.json({ error: 'Submission rejected by grading process', details: gradingOutput }, { status: 400 });
   }
 
+  let finalScore = 0;
+  if (gradingOutput.status === "accepted") {
+    const energyPenalty = Math.floor(gradingOutput.energyJoules); 
+    finalScore = Math.max(1, maxPoints - energyPenalty);
+  }
+
   await prisma.userChallenge.update({
     where: { id: submission.id },
     data: {
       energyConsumed: gradingOutput.energyJoules,
+      status: gradingOutput.status === "accepted" ? 'PASSED' : 'FAILED',
+      score: finalScore,
+    }
+  });
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      totScore: {
+        increment: finalScore
+      }
     }
   });
   
   const returnResult:SubmissionResult = {
     passed: gradingOutput.status === "accepted",
-    score: gradingOutput.status === "accepted" ? 100 : 0, // Placeholder scoring logic
+    score: finalScore,
     executionTime: Math.round(gradingOutput.executionTimeMs / 1000),
     yourEnergy: Math.round((gradingOutput.energyJoules / 3.6) * 100) / 100,
     message: gradingOutput.status === "accepted" ? "Submission accepted!" : "Submission rejected."
