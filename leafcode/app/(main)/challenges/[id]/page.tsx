@@ -20,8 +20,8 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
-  const challengeId = parseInt(id)
-  if (isNaN(challengeId)) return {}
+  const challengeId = id
+  if (!challengeId) return {}
 
   const challenge = await prisma.challenge.findUnique({
     where: { id: challengeId },
@@ -34,8 +34,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ChallengePage({ params }: PageProps) {
   const { id } = await params
-  const challengeId = parseInt(id)
-  if (isNaN(challengeId)) notFound()
+  const challengeId = id
+  if (!challengeId) notFound()
 
   const challenge = await prisma.challenge.findUnique({
     where: { id: challengeId },
@@ -50,22 +50,24 @@ export default async function ChallengePage({ params }: PageProps) {
   })
 
   const rawLeaderboard = await prisma.userChallenge.findMany({
-    where:   { challengeId, status: 'PASSED' },
+    where:   { challengeId, status: 'PASSED', score: { not: null } },
     orderBy: { score: 'desc' },
     take:    20,
     include: { user: { select: { id: true, name: true, image: true } } },
   })
 
-  const leaderboard: ChallengeSubmission[] = rawLeaderboard.map((s, idx) => ({
-    id:              s.id,
-    userId:          s.userId,
-    userName:        s.user.name,
-    userAvatar:      s.user.image
-      ?? `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${s.userId}`,
-    language:        s.language,
-    score:           s.score,
-    submittedAt:     s.submittedAt.toISOString(),
-  }))
+  const leaderboard: ChallengeSubmission[] = rawLeaderboard
+    .filter((s): s is typeof s & { score: number } => s.score !== null)
+    .map((s) => ({
+      id:              s.id,
+      userId:          s.userId,
+      userName:        s.user.name,
+      userAvatar:      s.user.image
+        ?? `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${s.userId}`,
+      language:        s.language,
+      score:           s.score,
+      submittedAt:     s.submittedAt.toISOString(),
+    }))
 
   const startingCodes: SerializedStartingCode[] = challenge.startingCodes.map(sc => ({
     id:          sc.id,
@@ -73,6 +75,10 @@ export default async function ChallengePage({ params }: PageProps) {
     code:        sc.code,
     challengeId: sc.challengeId,
   }))
+
+  const submissionCount = await prisma.userChallenge.count({
+    where: { challengeId },
+  })
 
   const allowedLanguages = challenge.languages.length > 0
     ? challenge.languages
@@ -107,7 +113,7 @@ export default async function ChallengePage({ params }: PageProps) {
               </span>
               <span className="flex items-center gap-1.5 font-['Space_Mono',monospace] text-[10px] text-slate-400">
                 <Users className="h-3 w-3" />
-                {challenge.submissionCount.toLocaleString()} submissions
+                {submissionCount.toLocaleString()} submission{submissionCount !== 1 && 's'}
               </span>
             </div>
 

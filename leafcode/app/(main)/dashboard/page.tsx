@@ -126,7 +126,7 @@ async function getLeaderboard(): Promise<LeaderboardEntry[]> {
 
 async function getActivity(userId: string): Promise<ActivityEntry[]> {
   const submissions = await prisma.userChallenge.findMany({
-    where:   { userId },
+    where:   { userId, score: { not: null } },
     orderBy: { submittedAt: 'desc' },
     take:    4,
     include: {
@@ -134,15 +134,17 @@ async function getActivity(userId: string): Promise<ActivityEntry[]> {
     },
   })
 
-  return submissions.map((s) => ({
-    id:              s.id,
-    challengeName:   s.challenge.title,
-    language:        s.language,
-    submittedAt:     timeAgo(s.submittedAt),
-    totScore:           s.score,
-    status:          s.status.toLowerCase() as 'passed' | 'failed' | 'pending',
-    energyConsumption: 0, // TODO: compute this based on a baseline per language
-  }))
+  return submissions
+    .filter((s): s is typeof s & { score: number } => s.score !== null)
+    .map((s) => ({
+      id:              s.id,
+      challengeName:   s.challenge.title,
+      language:        s.language,
+      submittedAt:     timeAgo(s.submittedAt),
+      totScore:        s.score,
+      status:          s.status.toLowerCase() as 'passed' | 'failed' | 'pending',
+      energyConsumption: 0, // TODO: compute this based on a baseline per language
+    }))
 }
 
 export default async function HomePage() {
@@ -162,11 +164,11 @@ export default async function HomePage() {
     <>
     <ParticleField />
       <main className="relative z-10 flex flex-col min-h-[calc(100vh-72px)]">
-        <div className='justify-center items-center text-center mt-10 pb-10 mb-12 bg-[#04c946]/15 rounded-lg mx-10 lg:mx-50'>
-          <h1 className="font-['Space_Mono',monospace] text-5xl text-[var(--lc-green)]/50 px-20 pt-10 pb-3">
+        <div className='justify-center items-center text-center mt-10 pb-10 mb-6 bg-[#04c946]/15 rounded-lg mx-4 sm:mx-10 lg:mx-50'>
+          <h1 className="font-['Space_Mono',monospace] text-2xl sm:text-5xl text-[var(--lc-green)]/50 px-4 sm:px-20 pt-10 pb-3">
             Welcome Back, {user.name.split(' ')[0]}!
           </h1>
-          <h2 className="font-['Space_Mono',monospace] font-bold text-xl px-8 mb-10">
+          <h2 className="font-['Space_Mono',monospace] font-bold text-base sm:text-xl px-4 sm:px-8 mb-10">
             Ready for a new challenge?
           </h2>
           <GlowButton href="/challenges" label="Start Coding" />
@@ -175,7 +177,7 @@ export default async function HomePage() {
         <div className="flex flex-col lg:flex-row flex-1">
 
           {/* ── LEFT COLUMN ──────────────────────────────────────────── */}
-          <section className="flex flex-col gap-6 px-8 py-10 lg:w-[55%] lg:px-14 lg:py-12">
+          <section className="flex flex-col gap-4 sm:gap-6 px-8 py-10 lg:w-[55%] lg:px-14 lg:py-12">
             <p className="font-['Space_Mono',monospace] text-xs uppercase tracking-widest text-[var(--lc-green)]/50">
               Your Stats
             </p>

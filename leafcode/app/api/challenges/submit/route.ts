@@ -6,7 +6,7 @@ import { put, del } from '@vercel/blob';
 import { Sandbox } from '@vercel/sandbox';
 
 interface SubmissionBody {
-  challengeId: number
+  challengeId: string
   code: string
   language: SubmissionLanguage
 }
@@ -36,9 +36,8 @@ function isSubmissionBody(value: unknown): value is SubmissionBody {
 
   const body = value as Record<string, unknown>
   return (
-    typeof body.challengeId === 'number' &&
-    Number.isInteger(body.challengeId) &&
-    body.challengeId > 0 &&
+    typeof body.challengeId === 'string' &&
+    body.challengeId.trim().length > 0 &&
     typeof body.code === 'string' &&
     body.code.trim().length > 0 &&
     typeof body.language === 'string' &&
@@ -190,6 +189,12 @@ export async function POST(
 
   if (gradingResult.exitCode !== 0) {
     await sandbox.stop();
+
+    await prisma.userChallenge.update({
+      where: { id: submission.id },
+      data: { status: 'FAILED' }
+    });
+
     console.error('Grading process failed:', gradingResult);
     return NextResponse.json({ error: 'Grading process failed' }, { status: 500 });
   }
@@ -203,11 +208,21 @@ export async function POST(
   try {
     gradingOutput = JSON.parse(stdout) as GradingResult;
   } catch (err) {
+    await prisma.userChallenge.update({
+      where: { id: submission.id },
+      data: { status: 'FAILED' }
+    });
+
     console.error('Failed to parse grading output:', err);
     return NextResponse.json({ error: 'Failed to parse grading results' }, { status: 500 });
   }
 
   if (gradingOutput.status !== "accepted") {
+    await prisma.userChallenge.update({
+      where: { id: submission.id },
+      data: { status: 'FAILED' }
+    });
+    
     console.error('Submission rejected by grading process:', gradingOutput);
     return NextResponse.json({ error: 'Submission rejected by grading process', details: gradingOutput }, { status: 400 });
   }
