@@ -38,6 +38,7 @@ enum SubmissionStatus {
 
 model Challenge {
   id              Int             @id @default(autoincrement())
+  slug            String          @unique
   title           String
   description     String
   difficulty      Difficulty
@@ -55,6 +56,8 @@ model StartingCode {
   code        String    @db.Text // Use @db.Text for long code snippets
   challengeId Int
   challenge   Challenge @relation(fields: [challengeId], references: [id])
+
+  @@unique([challengeId, language])
 }
 
 model UserChallenge {
@@ -66,6 +69,7 @@ model UserChallenge {
   score           Int
   language        Language
   energyConsumed  Int
+  totTime         Int
   status          SubmissionStatus @default(PENDING)
   submittedAt     DateTime         @default(now())
   code            String
