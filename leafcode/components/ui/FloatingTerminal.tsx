@@ -146,7 +146,7 @@ export default function FloatingTerminal() {
   }, [])
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-[340px] rounded-xl border border-[var(--lc-green)]/20 bg-[#060a08]/92 backdrop-blur-xl shadow-2xl overflow-hidden">
+    <div className="fixed bottom-6 right-6 z-50 w-[340px] rounded-xl border border-[var(--lc-green)]/20 bg-[#060a08]/92 backdrop-blur-xl shadow-2xl overflow-hidden hidden md:flex flex-col">
 
       {/* Title bar */}
       <div className="flex items-center gap-2 px-3 py-2.5 bg-[var(--lc-green)]/5 border-b border-[var(--lc-green)]/10">

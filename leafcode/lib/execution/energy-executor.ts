@@ -17,6 +17,8 @@ export async function measureEnergy(
     return { status: 'error', energyJoules: 0, executionTimeMs: 0 }
   }
 
+  const submissionId = `local-${Date.now()}`
+
   const executorUrl = process.env.EXECUTOR_URL
   if (executorUrl) {
     try {
@@ -28,7 +30,7 @@ export async function measureEnergy(
             ? { Authorization: `Bearer ${process.env.EXECUTOR_TOKEN}` }
             : {}),
         },
-        body: JSON.stringify({ code, language: 'python' }),
+        body: JSON.stringify({ code, language: 'python', submissionId }),
       })
 
       if (!response.ok) {
@@ -53,7 +55,7 @@ export async function measureEnergy(
     // Run from parent directory: c:\Delft\SSE_p2\runner\executor.py
     const executorPath = join(process.cwd(), '..', 'runner', 'executor.py')
     const result = execSync(`python "${executorPath}"`, {
-      input: JSON.stringify({ code, language: 'python' }),
+      input: JSON.stringify({ code, language: 'python', submissionId }),
       encoding: 'utf-8',
       timeout: 15000,
       stdio: ['pipe', 'pipe', 'pipe'],

@@ -8,20 +8,20 @@ import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
 
 const NAV_LINKS = [
-  { href: '/',           label: 'Home'       },
-  { href: '/dashboard',  label: 'Dashboard'  },
-  { href: '/challenges', label: 'Challenges' },
-  { href: '/about',      label: 'About'      },
+  { href: '/dashboard',  label: 'Dashboard' , isPrivate: true },
+  { href: '/challenges', label: 'Challenges', isPrivate: false },
+  { href: '/about',      label: 'About'     , isPrivate: false },
 ]
 
 type Session = {
   user: {
     name: string
     email: string
+    image: string
   }
-} | null
+}
 
-export default function Navbar({ session }: { session: Session }) {
+export default function Navbar({ session }: { session: Session | null }) {
   const pathname = usePathname()
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -30,15 +30,11 @@ export default function Navbar({ session }: { session: Session }) {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          window.location.href = '/auth/login'
-        },
+          router.push('/')
+          router.refresh()
+        }
       },
     })
-  }
-
-  function getHref(href: string) {
-    if (!session) return '/auth/login'
-    return href
   }
 
   return (
@@ -66,7 +62,8 @@ export default function Navbar({ session }: { session: Session }) {
 
         {/* Desktop links */}
         <ul className="hidden md:flex items-center gap-1">
-          {NAV_LINKS.map(({ href, label }) => (
+          {NAV_LINKS.map(({ href, label, isPrivate }) => (
+            (!isPrivate || session) &&
             <li key={href}>
               <Link
                 href={href}
@@ -90,18 +87,20 @@ export default function Navbar({ session }: { session: Session }) {
         <div className="hidden md:flex items-center gap-3">
           {session ? (
             <>
-              <Link
-                href="/challenges"
-                className="px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] transition-colors"
-                style={{ background: 'var(--lc-green)', color: 'var(--lc-bg-card)' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--lc-green-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'var(--lc-green)')}
-              >
-                Enter Challenge
-              </Link>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#1e3a2a]">
+                <img
+                  src={session.user.image}
+                  alt={session.user.name}
+                  className="h-6 w-6 rounded-full object-cover"
+                />
+                <span className="text-sm font-['Space_Mono',monospace] text-slate-400">
+                  {session.user.name}
+                </span>
+              </div>
+              
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/10 transition-colors"
+                className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/10 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
                 Logout
@@ -122,7 +121,7 @@ export default function Navbar({ session }: { session: Session }) {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden text-slate-400 hover:text-slate-100 transition-colors"
+          className="md:hidden text-slate-400 hover:text-slate-100 transition-colors cursor-pointer"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
@@ -139,7 +138,8 @@ export default function Navbar({ session }: { session: Session }) {
           }}
         >
           <ul className="flex flex-col gap-2">
-            {NAV_LINKS.map(({ href, label }) => (
+            {NAV_LINKS.map(({ href, label, isPrivate }) => (
+              (!isPrivate || session) &&
               <li key={href}>
                 <Link
                   href={href}
@@ -158,17 +158,20 @@ export default function Navbar({ session }: { session: Session }) {
             <li className="mt-2">
               {session ? (
                 <>
-                  <Link
-                    href="/challenges"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-4 py-2 rounded-lg text-sm font-bold font-['Space_Mono',monospace] text-center transition-colors"
-                    style={{ background: 'var(--lc-green)', color: 'var(--lc-bg-card)' }}
-                  >
-                    Enter Challenge
-                  </Link>
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1e3a2a]">
+                    <img
+                      src={session.user.image}
+                      alt={session.user.name}
+                      className="h-6 w-6 rounded-full object-cover"
+                    />
+                    <span className="text-sm font-['Space_Mono',monospace] text-slate-400">
+                      {session.user.name}
+                    </span>
+                  </div>
+
                   <button
                     onClick={() => { setMenuOpen(false); handleSignOut() }}
-                    className="w-full flex items-center gap-2 px-4 py-2 rounded-md text-sm font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-colors mt-2"
+                    className="cursor-pointer w-full flex items-center gap-2 px-4 py-2 rounded-md text-sm font-['Space_Mono',monospace] text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-colors mt-2"
                   >
                     <LogOut className="h-4 w-4" />
                     Logout

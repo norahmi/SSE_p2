@@ -4,6 +4,7 @@ Loads XGBoost model, executes code, measures energy
 """
 
 import json
+import argparse
 import subprocess
 import tempfile
 import os
@@ -21,14 +22,87 @@ import psutil
 MODEL = None
 PREDICTIONS = None
 
+
+def _load_code_from_file(file_path):
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+    if not os.path.isfile(file_path):
+        raise ValueError(f"Not a file: {file_path}")
+    with open(file_path, 'r', encoding='utf-8') as f:
+        return f.read()
+
+
+def _build_input_payload():
+    parser = argparse.ArgumentParser(description='Execute code with energy monitoring')
+    parser.add_argument('-l', '--language', help='Execution language (e.g. python, javascript)')
+    parser.add_argument('-s', '--submission-id', help='Submission ID')
+    parser.add_argument('-f', '--file', help='Path to source code file')
+
+    args = parser.parse_args()
+
+    # JSON mode: no CLI args, full request from stdin
+    if len(sys.argv) == 1:
+        stdin_text = sys.stdin.read()
+        if not stdin_text.strip():
+            raise ValueError('No input provided. Pass JSON via stdin or use CLI arguments.')
+        try:
+            payload = json.loads(stdin_text)
+        except json.JSONDecodeError as exc:
+            raise ValueError('Expected JSON input on stdin when no CLI arguments are provided.') from exc
+
+        if not isinstance(payload, dict):
+            raise ValueError('JSON input must be an object.')
+
+        if 'language' not in payload or 'submissionId' not in payload:
+            raise ValueError('Missing required fields: language and submissionId')
+
+        has_code = 'code' in payload and bool(str(payload['code']).strip())
+        has_file = 'file' in payload and bool(str(payload['file']).strip())
+
+        if not has_code and not has_file:
+            raise ValueError('Missing required field: code (or provide file)')
+
+        if has_file:
+            # Validate the path early and execute file directly later.
+            _load_code_from_file(payload['file'])
+
+        return {
+            'language': payload['language'],
+            'submissionId': payload['submissionId'],
+            'code': payload['code'] if has_code else None,
+            'sourceFile': payload['file'] if has_file else None,
+        }
+
+    # CLI mode: language + submission ID required, code from stdin or --file
+    if not args.language or not args.submission_id:
+        raise ValueError('CLI mode requires --language and --submission-id')
+
+    if args.file:
+        _load_code_from_file(args.file)
+        source_file = args.file
+        code = None
+    else:
+        if sys.stdin.isatty():
+            raise ValueError('Provide code via stdin or use --file <path>')
+        stdin_text = sys.stdin.read()
+        if not stdin_text.strip():
+            raise ValueError('Provide code via stdin or use --file <path>')
+        code = stdin_text
+        source_file = None
+
+    return {
+        'language': args.language,
+        'submissionId': args.submission_id,
+        'code': code,
+        'sourceFile': source_file,
+    }
+
 def load_model():
     """Load model on first use"""
     global MODEL, PREDICTIONS
     
     if MODEL is not None:
         return MODEL, PREDICTIONS
-    
-    print("[Model] Loading...", file=sys.stderr, flush=True)
     
     data_path = os.path.join(os.path.dirname(__file__), 'data', 'spec_data_cleaned.csv')
     df = pd.read_csv(data_path)
@@ -69,7 +143,6 @@ def load_model():
     MODEL = model
     PREDICTIONS = predictions
     
-    print("[Model] Ready", file=sys.stderr, flush=True)
     return model, predictions
 
 def estimate_power(cpu_percent):
@@ -89,13 +162,18 @@ def monitor_energy(stop_event, energy_readings):
         energy_readings.append(energy)
         time.sleep(max(0, 0.5 - elapsed))
 
-def execute_with_monitoring(code, language):
+def execute_with_monitoring(code, language, source_file=None):
     load_model()
-    
-    suffix = '.py' if language == 'python' else '.js'
-    with tempfile.NamedTemporaryFile(mode='w', suffix=suffix, delete=False) as f:
-        f.write(code)
-        code_file = f.name
+
+    cleanup_temp_file = False
+    if source_file:
+        code_file = source_file
+    else:
+        suffix = '.py' if language == 'python' else '.js'
+        with tempfile.NamedTemporaryFile(mode='w', suffix=suffix, delete=False) as f:
+            f.write(code)
+            code_file = f.name
+        cleanup_temp_file = True
     
     try:
         energy_readings = []
@@ -107,7 +185,13 @@ def execute_with_monitoring(code, language):
         
         start_time = time.time()
         cmd = ['python3', code_file] if language == 'python' else ['node', code_file]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        result = subprocess.run(
+            cmd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=60,
+        )
         execution_time = int((time.time() - start_time) * 1000)
         
         stop_event.set()
@@ -121,9 +205,7 @@ def execute_with_monitoring(code, language):
             'energyJoules': round(total_energy, 2),
             'executionTimeMs': execution_time,
             'avgPowerWatts': round(avg_power, 2),
-            'numReadings': len(energy_readings),
-            'output': result.stdout,
-            'stderr': result.stderr if result.returncode != 0 else None
+            'numReadings': len(energy_readings)
         }
         
     except subprocess.TimeoutExpired:
@@ -131,10 +213,20 @@ def execute_with_monitoring(code, language):
     except Exception as e:
         return {'status': 'error', 'error': str(e)}
     finally:
-        if os.path.exists(code_file):
+        if cleanup_temp_file and os.path.exists(code_file):
             os.unlink(code_file)
 
 if __name__ == '__main__':
-    input_data = json.loads(sys.stdin.read())
-    result = execute_with_monitoring(input_data['code'], input_data['language'])
+    try:
+        input_data = _build_input_payload()
+    except Exception as e:
+        print(json.dumps({'status': 'error', 'error': str(e)}))
+        sys.exit(1)
+
+    result = execute_with_monitoring(
+        input_data['code'],
+        input_data['language'],
+        input_data.get('sourceFile'),
+    )
+    result['submissionId'] = input_data['submissionId']
     print(json.dumps(result))

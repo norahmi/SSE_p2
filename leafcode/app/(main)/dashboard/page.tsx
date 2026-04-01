@@ -166,7 +166,7 @@ export default async function HomePage() {
   return (
     <>
     <ParticleField />
-      <main className="relative z-10 flex flex-col min-h-[calc(100vh-64px)]">
+      <main className="relative z-10 flex flex-col min-h-[calc(100vh-72px)]">
         <div className='justify-center items-center text-center mt-10 pb-10 mb-12 bg-[#04c946]/15 rounded-lg mx-10 lg:mx-50'>
           <h1 className="font-['Space_Mono',monospace] text-5xl text-[var(--lc-green)]/50 px-20 pt-10 pb-3">
             Welcome Back, {user.name.split(' ')[0]}!

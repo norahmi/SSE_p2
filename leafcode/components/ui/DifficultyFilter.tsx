@@ -43,7 +43,7 @@ export default function DifficultyFilter() {
           key={value}
           onClick={() => select(value)}
           className={`
-            px-3 py-1.5 rounded-lg border text-xs font-bold
+            px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer
             font-['Space_Mono',monospace] transition-all duration-150
             ${active === value ? COLORS[value] : INACTIVE}
           `}

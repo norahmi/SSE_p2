@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import ChallengeIDE from '@/components/ui/ChallengeIDE'
 import type { ChallengeSubmission, SerializedStartingCode } from '@/components/ui/ChallengeIDE'
 import type { Metadata } from "next";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 const DIFF_STYLES = {
   EASY:   'border-emerald-400/30 text-emerald-400 bg-emerald-400/8',
@@ -42,6 +44,10 @@ export default async function ChallengePage({ params }: PageProps) {
     },
   })
   if (!challenge) notFound()
+
+  const session = await auth.api.getSession({
+      headers: await headers()
+  })
 
   const rawLeaderboard = await prisma.userChallenge.findMany({
     where:   { challengeId, status: 'PASSED' },
@@ -176,12 +182,20 @@ export default async function ChallengePage({ params }: PageProps) {
           <p className="font-['Space_Mono',monospace] text-xs uppercase tracking-widest text-[#28eb70]/50">
             Your Solution
           </p>
-          <ChallengeIDE
-            challengeId={challenge.id}
-            allowedLanguages={[...allowedLanguages]}
-            startingCodes={startingCodes}
-            leaderboard={leaderboard}
-          />
+          {
+            session ? 
+              <ChallengeIDE
+                challengeId={challenge.id}
+                allowedLanguages={[...allowedLanguages]}
+                startingCodes={startingCodes}
+                leaderboard={leaderboard}
+              />
+            : (
+              <div className="rounded-md bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 px-4 py-3 text-sm font-['Space_Mono',monospace]">
+                Please log in to submit your solution and see the leaderboard.
+              </div>
+            )
+          }
         </div>
 
       </div>

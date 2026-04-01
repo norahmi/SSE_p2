@@ -3,6 +3,7 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import ParticleField from "@/components/ui/ParticleField"
+import { Leaf } from "lucide-react"
 
 export default async function AuthLayout({
     children,
@@ -74,7 +75,7 @@ export default async function AuthLayout({
                 <div className="absolute top-8 left-8 flex items-center gap-2.5">
                 <div className="h-8 w-8 rounded-lg border border-[#28eb70]/40 bg-[#060f0a]/60
                                 backdrop-blur-sm flex items-center justify-center text-sm">
-                    🌿
+                    <Leaf className="h-4 w-4 text-[var(--lc-green)]" />
                 </div>
                 <span className="font-['Space_Mono',monospace] text-lg font-bold drop-shadow-lg">
                     <span className="text-[#28eb70]">leaf</span>

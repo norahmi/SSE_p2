@@ -26,9 +26,9 @@ export default function AuthLogin() {
       await authClient.signIn.social(
         {
           provider: providerId,
-          callbackURL: "/",
+          callbackURL: "/dashboard",
           errorCallbackURL: "/auth/error",
-          newUserCallbackURL: "/auth/welcome",
+          // newUserCallbackURL: "/auth/welcome",
           disableRedirect: false,
         },
         {
@@ -142,7 +142,7 @@ export default function AuthLogin() {
             )}
           </Button>
         </Field>
-        {/* <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
+        <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
           Or continue with
         </FieldSeparator>
         <Field className="grid grid-cols-3 gap-4">
@@ -211,7 +211,7 @@ export default function AuthLogin() {
             </svg>
             <span className="sr-only">Login with Microsoft</span>
           </Button>
-        </Field> */}
+        </Field>
         <FieldDescription className="text-center">
           Don&apos;t have an account? <Link href="/auth/register">Sign Up</Link>
         </FieldDescription>
