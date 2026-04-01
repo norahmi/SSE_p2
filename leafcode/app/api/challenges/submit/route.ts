@@ -6,7 +6,6 @@ import { prisma } from '@/lib/prisma'
 import { put, del } from '@vercel/blob'
 import { Sandbox } from '@vercel/sandbox'
 import { runFunctionalTests, type FunctionalTestCase } from '@/lib/execution/test-runner'
-import { measureEnergy } from '@/lib/execution/energy-executor'
 import { getRunnerLayout, type RunnerLanguage } from '@/lib/execution/templates'
 
 type AppSubmissionStatus = 'PENDING' | 'PASSED' | 'FAILED'
@@ -344,47 +343,10 @@ export async function POST(
   const blobToken = process.env.SUBMISSION_BLOB_READ_WRITE_TOKEN
   const snapshotId = process.env.SANDBOX_SNAPSHOT_ID
   if (!blobToken || !snapshotId) {
-    console.warn('Sandbox env vars missing. Falling back to local energy executor.')
-
-    const localEnergy = await measureEnergy(submissionBody.code, runnerLanguage)
-    const energyJ = localEnergy.status === 'accepted' ? localEnergy.energyJoules : 0
-    const yourEnergyMwh = Math.round((energyJ / 3.6) * 100) / 100
-    const executionTime = Number(((Date.now() - startedAt) / 1000).toFixed(3))
-
-    await prisma.$transaction([
-      prisma.userChallenge.create({
-        data: {
-          userId: session.user.id,
-          challengeId,
-          code: submissionBody.code,
-          language: submissionBody.language,
-          status: 'PASSED',
-          co2Consumed: 0,
-          energyConsumed: Math.max(0, Math.round(energyJ)),
-          score: 100,
-        },
-      }),
-      prisma.challenge.update({
-        where: { id: challengeId },
-        data: { submissionCount: { increment: 1 } },
-      }),
-      prisma.user.update({
-        where: { id: session.user.id },
-        data: { totScore: { increment: 100 } },
-      }),
-    ])
-
-    const localResult: SubmissionResult = {
-      passed: true,
-      score: 100,
-      executionTime,
-      yourEnergy: yourEnergyMwh,
-      message: localEnergy.status === 'accepted'
-        ? `All functional tests passed. Energy consumed: ${energyJ.toFixed(2)}J.`
-        : 'All functional tests passed. Energy measurement failed in local mode.',
-    }
-
-    return NextResponse.json(localResult)
+    return NextResponse.json(
+      { error: 'Sandbox is not configured. Missing SANDBOX_SNAPSHOT_ID or SUBMISSION_BLOB_READ_WRITE_TOKEN.' },
+      { status: 500 }
+    )
   }
 
   const submission = await prisma.userChallenge.create({
