@@ -103,7 +103,7 @@ export default async function AuthLayout({
                 <div className="flex items-center gap-2 mb-8 md:hidden">
                 <div className="h-7 w-7 rounded-lg border border-[#28eb70]/30 bg-[#28eb70]/8
                                 flex items-center justify-center text-xs">
-                    🌿
+                    <Leaf className="h-4 w-4 text-[var(--lc-green)]" />
                 </div>
                 <span className="font-['Space_Mono',monospace] text-base font-bold">
                     <span className="text-[#28eb70]">leaf</span>
