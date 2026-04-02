@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { CheckCircle, XCircle, Loader2, ChevronDown, Zap, Leaf, Trophy } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import type { Language } from '@prisma/client'
+
+type Language = 'PYTHON' | 'CPP' | 'C' | 'JAVASCRIPT'
 
 // ── CodeMirror ────────────────────────────────────────────────────────────
 import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirror/view'
@@ -79,6 +80,7 @@ function getLangExtension(lang: Language) {
     case 'CPP':        return cpp()
     case 'C':          return cpp()      // CodeMirror has no separate C extension; cpp() handles C fine
     case 'JAVASCRIPT': return javascript()
+    default:           return javascript()
   }
 }
 
@@ -182,7 +184,7 @@ function ChallengeLeaderboard({
                     {LANG_META[entry.language]?.label ?? entry.language}
                   </Badge>
                   <span className="font-['Space_Mono',monospace] text-[9px] text-slate-600">
-                    {new Date(entry.submittedAt).toLocaleDateString()}
+                    {new Date(entry.submittedAt).toISOString().split('T')[0]}
                   </span>
                 </div>
               </div>
@@ -259,8 +261,31 @@ export default function ChallengeIDE({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ challengeId, code, language: language.toUpperCase() }),
       })
-      const data: SubmitResult= await res.json()
-      setResult(data)
+
+      const raw = await res.text()
+      let parsed: unknown = null
+      try {
+        parsed = raw ? JSON.parse(raw) : {}
+      } catch {
+        parsed = { error: `Server returned a non-JSON response (status ${res.status}).` }
+      }
+
+      if (!res.ok) {
+        const message = typeof (parsed as { error?: unknown })?.error === 'string'
+          ? (parsed as { error: string }).error
+          : `Submit failed with status ${res.status}.`
+        setResult({ passed: false, score: 0, executionTime: 0, yourEnergy: 0, message })
+        return
+      }
+
+      const payload = parsed as Partial<SubmitResult> & { message?: string }
+      setResult({
+        passed: !!payload.passed,
+        score: Number(payload.score ?? 0),
+        executionTime: Number(payload.executionTime ?? 0),
+        yourEnergy: Number(payload.yourEnergy ?? 0),
+        message: typeof payload.message === 'string' ? payload.message : 'Submission processed.',
+      })
       setTimeout(() => {
         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' })
       }, 100)
