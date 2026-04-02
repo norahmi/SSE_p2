@@ -255,14 +255,14 @@ int main() {
 }
 
 export function getRunnerLayout(language: RunnerLanguage, assignmentId: number): RunnerLayout {
-  if (language === 'PYTHON') {
+    if (language === 'PYTHON') {
         return {
             studentFileName: 'solution.py',
             driverFileName: 'main.py',
             driverSource: PYTHON_DRIVER,
             supportFiles: [],
         }
-  }
+    }
 
     return {
         studentFileName: 'solution.cpp',

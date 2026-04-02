@@ -599,7 +599,7 @@ export async function POST(
   let totalEnergyJ = 0
   let energyError = ''
 
-  if (runnerLanguage === 'PYTHON') {
+  if (runnerLanguage === 'PYTHON' || runnerLanguage === 'CPP') {
     const layout = getRunnerLayout(runnerLanguage, assignmentId)
     const runDir = `tmp/${submission.id}`
     const runDirAbs = `/vercel/sandbox/${runDir}`
@@ -628,7 +628,7 @@ export async function POST(
         args: [
           'executor.py',
           '-s', `${submission.id}-${i}`,
-          '-l', 'python',
+          '-l', runnerLanguage.toLowerCase(),
           '-f', driverPathAbs,
           '--stdin-file', stdinPathAbs,
         ],
@@ -661,7 +661,7 @@ export async function POST(
       console.log(`Energy grading completed: ${testCases.length}/${testCases.length} tests`)
     }
   } else {
-    energyError = 'Energy measurement is currently available for Python only.'
+    energyError = 'Energy measurement is currently unavailable for this language.'
   }
 
   await sandbox.stop()
