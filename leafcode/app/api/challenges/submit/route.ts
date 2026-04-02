@@ -600,8 +600,10 @@ export async function POST(
 
   if (runnerLanguage === 'PYTHON') {
     const layout = getRunnerLayout(runnerLanguage, assignmentId)
-    const runDir = `/tmp/${submission.id}`
+    const runDir = `tmp/${submission.id}`
+    const runDirAbs = `/vercel/sandbox/${runDir}`
     const driverPath = `${runDir}/${layout.driverFileName}`
+    const driverPathAbs = `${runDirAbs}/${layout.driverFileName}`
 
     const files = [
       { path: `${runDir}/${layout.studentFileName}`, content: Buffer.from(blobContent, 'utf-8') },
@@ -615,6 +617,7 @@ export async function POST(
     for (let i = 0; i < testCases.length; i++) {
       console.log(`Energy grading progress: test ${i + 1}/${testCases.length}`)
       const stdinPath = `${runDir}/stdin_${i}.txt`
+      const stdinPathAbs = `${runDirAbs}/stdin_${i}.txt`
       const stdinPayload = `${assignmentId}\n${testCases[i].stdin}`
       await sandbox.writeFiles([{ path: stdinPath, content: Buffer.from(stdinPayload, 'utf-8') }])
 
@@ -625,8 +628,8 @@ export async function POST(
           'executor.py',
           '-s', `${submission.id}-${i}`,
           '-l', 'python',
-          '-f', driverPath,
-          '--stdin-file', stdinPath,
+          '-f', driverPathAbs,
+          '--stdin-file', stdinPathAbs,
         ],
       })
 

@@ -19,7 +19,7 @@ import psutil
 
 try:
     from xgboost import XGBRegressor  # type: ignore[import-not-found]
-except ImportError:  # optional in functional mode
+except ImportError:
     XGBRegressor = None
 
 # Global cache
@@ -42,6 +42,7 @@ def _build_input_payload():
     parser.add_argument('-l', '--language', help='Execution language (e.g. python, javascript)')
     parser.add_argument('-s', '--submission-id', help='Submission ID')
     parser.add_argument('-f', '--file', help='Path to source code file')
+    parser.add_argument('--stdin-file', help='Path to stdin payload file (optional)')
 
     args = parser.parse_args()
 
@@ -77,7 +78,7 @@ def _build_input_payload():
             'code': payload['code'] if has_code else None,
             'sourceFile': payload['file'] if has_file else None,
             'stdinData': str(payload.get('stdin', '')),
-            'mode': args.mode,
+            'mode': payload.get('mode', args.mode),
         }
 
     # CLI mode: language + submission ID required, code from stdin or --file
@@ -203,7 +204,7 @@ def compile_code(code_file, language):
     except Exception as e:
         return {'error': str(e)}
 
-def execute_with_monitoring(code, language, source_file=None):
+def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
     load_model()
 
     # File extension mapping
@@ -273,7 +274,8 @@ def execute_with_monitoring(code, language, source_file=None):
         start_time = time.time()
         result = subprocess.run(
             cmd,
-            stdin=subprocess.DEVNULL,
+            input=stdin_data,
+            text=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=60,
