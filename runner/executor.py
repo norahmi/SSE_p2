@@ -42,7 +42,6 @@ def _build_input_payload():
     parser.add_argument('-l', '--language', help='Execution language (e.g. python, javascript)')
     parser.add_argument('-s', '--submission-id', help='Submission ID')
     parser.add_argument('-f', '--file', help='Path to source code file')
-    parser.add_argument('--stdin-file', help='Path to stdin payload file')
 
     args = parser.parse_args()
 
@@ -169,14 +168,14 @@ def estimate_power(cpu_percent):
 def monitor_energy(stop_event, energy_readings):
     while not stop_event.is_set():
         start = time.time()
-        cpu = psutil.cpu_percent(interval=0.05)
+        cpu = psutil.cpu_percent(interval=0.1)
         power = estimate_power(cpu)
         elapsed = time.time() - start
         energy = power * elapsed
         energy_readings.append(energy)
-        # time.sleep(max(0, 0.5 - elapsed))
+        time.sleep(max(0, 0.5 - elapsed))
 
-def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
+def execute_with_monitoring(code, language, source_file=None):
     load_model()
 
     cleanup_temp_file = False
@@ -201,8 +200,7 @@ def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
         cmd = ['python3', code_file] if language == 'python' else ['node', code_file]
         result = subprocess.run(
             cmd,
-            input=stdin_data,
-            text=True,
+            stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=60,
