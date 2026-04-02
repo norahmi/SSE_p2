@@ -10,18 +10,18 @@ export default function AboutPage() {
   return (
     <>
     <ParticleField/>
-    <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       {/* Hero Section */}
       <div className="mb-16">
         <p className="font-['Space_Mono',monospace] text-xs uppercase tracking-widest text-[#28eb70]/60 mb-3">
           About LeafCode
         </p>
-        <h1 className="font-['Space_Mono',monospace] text-4xl md:text-5xl font-bold text-slate-100 mb-6">
+        <h1 className="font-['Space_Mono',monospace] text-3xl sm:text-4xl md:text-5xl font-bold text-slate-100 mb-6 leading-tight">
           Your Code Is <span className="text-[#28eb70]">Melting Glaciers</span>.
           <br />
           We&apos;re Here To Fix That.
         </h1>
-        <p className="text-slate-400 text-base md:text-lg max-w-3xl leading-relaxed">
+        <p className="text-slate-400 text-sm sm:text-base md:text-lg max-w-3xl leading-relaxed">
           Every inefficient loop, every wasteful recursive call, every unoptimized data structure — they all consume real energy in real data centers powered by real coal plants. LeafCode makes the invisible visible: your code has a carbon footprint, and it&apos;s bigger than you think.
         </p>
       </div>
@@ -31,90 +31,90 @@ export default function AboutPage() {
         <p className="font-['Space_Mono',monospace] text-xs uppercase tracking-widest text-[#28eb70]/60 mb-4 text-center">
           Built by
         </p>
-        <div className="flex items-center justify-center gap-4 mb-3">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-5 mb-3 justify-items-center">
           
           {/* Team Member 1 */}
-          <div className="group relative">
-            <div className="w-30 h-30 rounded-full overflow-hidden transition-transform hover:scale-130">
+          <div className="group flex flex-col items-center gap-3">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full overflow-hidden transition-transform duration-300 hover:scale-110">
               <img 
                 src="/team/Medon.png" 
                 alt="Team member 1"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
-              <span className="font-['Space_Mono',monospace] text-sm text-slate-500 whitespace-nowrap transition-all group-hover:text-base group-hover:text-slate-300">
+            <div>
+              <span className="font-['Space_Mono',monospace] text-xs sm:text-sm text-slate-500 whitespace-nowrap transition-colors group-hover:text-slate-300">
                 Medon
               </span>
             </div>
           </div>
 
           {/* Team Member 2 */}
-          <div className="group relative">
-            <div className="w-30 h-30 rounded-full overflow-hidden transition-transform hover:scale-130">
+          <div className="group flex flex-col items-center gap-3">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full overflow-hidden transition-transform duration-300 hover:scale-110">
               <img 
                 src="/team/Norah.png" 
                 alt="Team member 2"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 ">
-              <span className="font-['Space_Mono',monospace] text-sm text-slate-500 whitespace-nowrap transition-all group-hover:text-base group-hover:text-slate-300">
+            <div>
+              <span className="font-['Space_Mono',monospace] text-xs sm:text-sm text-slate-500 whitespace-nowrap transition-colors group-hover:text-slate-300">
                 Norah
               </span>
             </div>
           </div>
 
           {/* Team Member 3 */}
-          <div className="group relative">
-            <div className="w-30 h-30 rounded-full overflow-hidden transition-transform hover:scale-130">
+          <div className="group flex flex-col items-center gap-3">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full overflow-hidden transition-transform duration-300 hover:scale-110">
               <img 
                 src="/team/Job.png" 
                 alt="Team member 3"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
-              <span className="font-['Space_Mono',monospace] text-sm text-slate-500 whitespace-nowrap transition-all group-hover:text-base group-hover:text-slate-300">
+            <div>
+              <span className="font-['Space_Mono',monospace] text-xs sm:text-sm text-slate-500 whitespace-nowrap transition-colors group-hover:text-slate-300">
                 Job
               </span>
             </div>
           </div>
 
           {/* Team Member 4 */}
-          <div className="group relative">
-            <div className="w-30 h-30 rounded-full overflow-hidden transition-transform hover:scale-130">
+          <div className="group flex flex-col items-center gap-3">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full overflow-hidden transition-transform duration-300 hover:scale-110">
               <img 
                 src="/team/Ayush.png" 
                 alt="Team member 4"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
-              <span className="font-['Space_Mono',monospace] text-sm text-slate-500 whitespace-nowrap transition-all group-hover:text-base group-hover:text-slate-300">
+            <div>
+              <span className="font-['Space_Mono',monospace] text-xs sm:text-sm text-slate-500 whitespace-nowrap transition-colors group-hover:text-slate-300">
                 Ayush
               </span>
             </div>
           </div>
 
           {/* Team Member 5 */}
-          <div className="group relative">
-            <div className="w-30 h-30 rounded-full overflow-hidden transition-transform hover:scale-130">
+          <div className="group flex flex-col items-center gap-3 col-span-2 sm:col-span-1">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full overflow-hidden transition-transform duration-300 hover:scale-110">
               <img 
                 src="/team/Konstantinos.png" 
                 alt="Team member 5"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
-              <span className="font-['Space_Mono',monospace] text-sm text-slate-500 whitespace-nowrap transition-all group-hover:text-base group-hover:text-slate-300">
+            <div>
+              <span className="font-['Space_Mono',monospace] text-xs sm:text-sm text-slate-500 whitespace-nowrap transition-colors group-hover:text-slate-300">
                  Konstantinos
               </span>
             </div>
           </div>
 
         </div>
-        <p className="font-['Space_Mono',monospace] text-xs text-slate-500 text-center mt-16">
+        <p className="font-['Space_Mono',monospace] text-xs text-slate-500 text-center mt-10 sm:mt-16">
           A team of 5 students passionate about sustainable software
         </p>
       </div>
