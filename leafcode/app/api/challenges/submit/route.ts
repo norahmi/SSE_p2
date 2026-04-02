@@ -5,9 +5,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { put, del } from '@vercel/blob'
 import { Sandbox } from '@vercel/sandbox'
-import { runFunctionalTests, type FunctionalTestCase } from '@/lib/execution/test-runner'
+import { runFunctionalTests, type FunctionalRunResult, type FunctionalTestCase } from '@/lib/execution/test-runner'
 import { getRunnerLayout, type RunnerLanguage } from '@/lib/execution/templates'
-import { number } from 'better-auth'
 
 type AppSubmissionStatus = 'PENDING' | 'PASSED' | 'FAILED'
 
@@ -33,6 +32,19 @@ interface GradingResult {
   avgPowerWatts: number
   numReadings: number
   error?: string
+}
+
+interface SandboxFunctionalResult {
+  status: 'accepted' | 'error' | 'timeout'
+  stdout?: string
+  stderr?: string
+  exitCode?: number | null
+  error?: string
+}
+
+interface SandboxErrorDetails {
+  location?: string
+  summary?: string
 }
 
 const ALLOWED_LANGUAGES = ['PYTHON', 'CPP', 'C', 'JAVASCRIPT'] as const
@@ -270,6 +282,178 @@ async function parseSubmissionBody(req: NextRequest): Promise<SubmissionBody | n
   return parsed
 }
 
+async function runSandboxFunctionalTests(params: {
+  assignmentId: number
+  studentCode: string
+  testCases: FunctionalTestCase[]
+}): Promise<FunctionalRunResult> {
+  const snapshotId = process.env.SANDBOX_SNAPSHOT_ID
+  if (!snapshotId) {
+    return {
+      passed: false,
+      failureKind: 'infrastructure_error',
+      message: 'Sandbox is not configured. Missing SANDBOX_SNAPSHOT_ID.',
+    }
+  }
+
+  const sandbox = await Sandbox.create({
+    source: {
+      type: 'snapshot',
+      snapshotId,
+    },
+    resources: {
+      vcpus: 1,
+    },
+    runtime: 'python3.13',
+    timeout: 120000,
+    networkPolicy: 'deny-all',
+  })
+
+  const layout = getRunnerLayout('PYTHON', params.assignmentId)
+  const runDir = `/tmp/leafcode-functional-${params.assignmentId}-${Date.now()}`
+
+  const extractSandboxErrorDetails = (stderr: string): SandboxErrorDetails => {
+    const normalized = stderr.replace(/\r\n/g, '\n').trim()
+    if (!normalized) return {}
+
+    const lines = normalized.split('\n').map((line) => line.trim()).filter(Boolean)
+    const tracebackRegex = /File "([^"]+)", line (\d+)/g
+    const matches = [...normalized.matchAll(tracebackRegex)]
+
+    const preferred = [...matches].reverse().find((match) => match[1]?.startsWith(runDir))
+    const fallback = matches.length > 0 ? matches[matches.length - 1] : undefined
+    const selected = preferred ?? fallback
+
+    const location = selected
+      ? `${selected[1].replace(`${runDir}/`, '')}:${selected[2]}`
+      : undefined
+
+    return {
+      location,
+      summary: lines[lines.length - 1],
+    }
+  }
+
+  try {
+    await sandbox.mkDir(runDir).catch(() => undefined)
+    await sandbox.writeFiles([
+      { path: `${runDir}/${layout.studentFileName}`, content: Buffer.from(params.studentCode, 'utf-8') },
+      { path: `${runDir}/${layout.driverFileName}`, content: Buffer.from(layout.driverSource, 'utf-8') },
+      ...layout.supportFiles.map((file) => ({
+        path: `${runDir}/${file.fileName}`,
+        content: Buffer.from(file.content, 'utf-8'),
+      })),
+    ])
+
+    for (let i = 0; i < params.testCases.length; i++) {
+      const testCase = params.testCases[i]
+      const stdinPath = `${runDir}/stdin_${i}.txt`
+      const stdinPayload = `${params.assignmentId}\n${testCase.stdin}`
+
+      await sandbox.writeFiles([
+        { path: stdinPath, content: Buffer.from(stdinPayload, 'utf-8') },
+      ])
+
+      const gradingResult = await sandbox.runCommand({
+        cwd: '/vercel/sandbox/leafcode/runner',
+        cmd: 'python3',
+        args: [
+          'executor.py',
+          '--mode', 'functional',
+          '-s', `${params.assignmentId}-${i}`,
+          '-l', 'python',
+          '-f', `${runDir}/${layout.driverFileName}`,
+          '--stdin-file', stdinPath,
+        ],
+      })
+
+      if (gradingResult.exitCode !== 0) {
+        const cmdStderr = await gradingResult.output('stderr')
+        const details = extractSandboxErrorDetails(cmdStderr)
+        const locationText = details.location ? ` at ${details.location}` : ''
+        const summaryText = details.summary ? ` ${details.summary}` : ''
+        return {
+          passed: false,
+          failureKind: 'runtime_error',
+          failedTestIndex: i,
+          stderr: cmdStderr || 'Sandbox functional runner failed to execute.',
+          message: `Test #${i + 1} crashed inside the sandbox${locationText}.${summaryText}`,
+        }
+      }
+
+      const stdout = await gradingResult.output('stdout')
+      let executionResult: SandboxFunctionalResult
+
+      try {
+        executionResult = JSON.parse(stdout) as SandboxFunctionalResult
+      } catch {
+        return {
+          passed: false,
+          failureKind: 'runtime_error',
+          failedTestIndex: i,
+          stderr: stdout,
+          message: `Test #${i + 1} returned malformed sandbox output.`,
+        }
+      }
+
+      if (executionResult.status === 'timeout') {
+        return {
+          passed: false,
+          failureKind: 'timeout',
+          failedTestIndex: i,
+          message: `Test #${i + 1} timed out inside the sandbox.`,
+        }
+      }
+
+      if (executionResult.status !== 'accepted' || (executionResult.exitCode ?? 1) !== 0) {
+        const rawStderr = executionResult.stderr || executionResult.error || 'Sandbox execution failed.'
+        const details = extractSandboxErrorDetails(rawStderr)
+        const locationText = details.location ? ` at ${details.location}` : ''
+        const summaryText = details.summary ? ` ${details.summary}` : ''
+        return {
+          passed: false,
+          failureKind: 'runtime_error',
+          failedTestIndex: i,
+          stderr: rawStderr,
+          message: `Test #${i + 1} crashed inside the sandbox${locationText}.${summaryText}`,
+        }
+      }
+
+      if ((executionResult.stderr ?? '').trim().length > 0) {
+        return {
+          passed: false,
+          failureKind: 'runtime_error',
+          failedTestIndex: i,
+          stderr: executionResult.stderr,
+          message: `Test #${i + 1} wrote to stderr inside the sandbox.`,
+        }
+      }
+
+      const actual = (executionResult.stdout ?? '').replace(/\r\n/g, '\n').trimEnd()
+      const expected = testCase.expectedStdout.replace(/\r\n/g, '\n').trimEnd()
+
+      if (actual !== expected) {
+        return {
+          passed: false,
+          failureKind: 'wrong_answer',
+          failedTestIndex: i,
+          expectedStdout: expected,
+          actualStdout: actual,
+          message: `Test #${i + 1} failed: wrong output.`,
+        }
+      }
+    }
+
+    return {
+      passed: true,
+      message: 'All functional tests passed.',
+      cleanStudentCode: params.studentCode,
+    }
+  } finally {
+    await sandbox.stop().catch(() => undefined)
+  }
+}
+
 export async function POST(
   req: NextRequest,
 ) {
@@ -327,12 +511,18 @@ export async function POST(
   }
 
   const startedAt = Date.now()
-  const functional = await runFunctionalTests({
-    language: runnerLanguage,
-    assignmentId,
-    studentCode: submissionBody.code,
-    testCases,
-  })
+  const functional = runnerLanguage === 'PYTHON'
+    ? await runSandboxFunctionalTests({
+        assignmentId,
+        studentCode: submissionBody.code,
+        testCases,
+      })
+    : await runFunctionalTests({
+        language: runnerLanguage,
+        assignmentId,
+        studentCode: submissionBody.code,
+        testCases,
+      })
 
   if (!functional.passed) {
     await prisma.$transaction([
