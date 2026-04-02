@@ -15,8 +15,12 @@ import threading
 sys.path.insert(0, os.path.dirname(__file__))
 
 import pandas as pd
-from xgboost import XGBRegressor
 import psutil
+
+try:
+    from xgboost import XGBRegressor  # type: ignore[import-not-found]
+except ImportError:
+    XGBRegressor = None
 
 # Global cache
 MODEL = None
@@ -34,6 +38,7 @@ def _load_code_from_file(file_path):
 
 def _build_input_payload():
     parser = argparse.ArgumentParser(description='Execute code with energy monitoring')
+    parser.add_argument('--mode', choices=['energy', 'functional'], default='energy')
     parser.add_argument('-l', '--language', help='Execution language (e.g. python, javascript)')
     parser.add_argument('-s', '--submission-id', help='Submission ID')
     parser.add_argument('-f', '--file', help='Path to source code file')
@@ -73,6 +78,7 @@ def _build_input_payload():
             'code': payload['code'] if has_code else None,
             'sourceFile': payload['file'] if has_file else None,
             'stdinData': str(payload.get('stdin', '')),
+            'mode': payload.get('mode', args.mode),
         }
 
     # CLI mode: language + submission ID required, code from stdin or --file
@@ -99,11 +105,15 @@ def _build_input_payload():
         'sourceFile': source_file,
         'stdinFile': args.stdin_file,
         'stdinData': None,
+        'mode': args.mode,
     }
 
 def load_model():
     """Load model on first use"""
     global MODEL, PREDICTIONS
+
+    if XGBRegressor is None:
+        raise RuntimeError('xgboost is required for energy mode but is not installed.')
     
     if MODEL is not None:
         return MODEL, PREDICTIONS
@@ -221,6 +231,46 @@ def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
         if cleanup_temp_file and os.path.exists(code_file):
             os.unlink(code_file)
 
+
+def execute_functionally(code, language, source_file=None, stdin_data=''):
+    cleanup_temp_file = False
+    if source_file:
+        code_file = source_file
+    else:
+        suffix = '.py' if language == 'python' else '.js'
+        with tempfile.NamedTemporaryFile(mode='w', suffix=suffix, delete=False) as f:
+            f.write(code)
+            code_file = f.name
+        cleanup_temp_file = True
+
+    try:
+        start_time = time.time()
+        cmd = ['python3', code_file] if language == 'python' else ['node', code_file]
+        result = subprocess.run(
+            cmd,
+            input=stdin_data,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=60,
+        )
+        execution_time = int((time.time() - start_time) * 1000)
+
+        return {
+            'status': 'accepted' if result.returncode == 0 else 'error',
+            'stdout': result.stdout,
+            'stderr': result.stderr,
+            'exitCode': result.returncode,
+            'executionTimeMs': execution_time,
+        }
+    except subprocess.TimeoutExpired:
+        return {'status': 'timeout', 'error': 'Timeout (60s limit)'}
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+    finally:
+        if cleanup_temp_file and os.path.exists(code_file):
+            os.unlink(code_file)
+
 if __name__ == '__main__':
     try:
         input_data = _build_input_payload()
@@ -233,11 +283,19 @@ if __name__ == '__main__':
     if stdin_file:
         stdin_data = _load_code_from_file(stdin_file)
 
-    result = execute_with_monitoring(
-        input_data['code'],
-        input_data['language'],
-        input_data.get('sourceFile'),
-        stdin_data,
-    )
+    if input_data.get('mode') == 'functional':
+        result = execute_functionally(
+            input_data['code'],
+            input_data['language'],
+            input_data.get('sourceFile'),
+            stdin_data,
+        )
+    else:
+        result = execute_with_monitoring(
+            input_data['code'],
+            input_data['language'],
+            input_data.get('sourceFile'),
+            stdin_data,
+        )
     result['submissionId'] = input_data['submissionId']
     print(json.dumps(result))
