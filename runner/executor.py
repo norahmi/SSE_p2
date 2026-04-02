@@ -161,21 +161,94 @@ def monitor_energy(stop_event, energy_readings):
         energy = power * elapsed
         energy_readings.append(energy)
         time.sleep(max(0, 0.5 - elapsed))
+        
+def compile_code(code_file, language):
+    """Compile C/C++ code, return executable path or error dict"""
+    
+    if language == 'c':
+        executable = code_file.replace('.c', '.out')
+        compile_cmd = ['gcc', '-O0', '-o', executable, code_file]
+    elif language == 'cpp':
+        executable = code_file.replace('.cpp', '.out')
+        compile_cmd = ['g++', '-O0', '-std=c++17', '-o', executable, code_file]
+    else:
+        return None
+    
+    try:
+        result = subprocess.run(compile_cmd, capture_output=True, text=True, timeout=10)
+        
+        if result.returncode != 0:
+            return {'error': 'compilation_failed', 'stderr': result.stderr}
+        
+        return executable
+        
+    except subprocess.TimeoutExpired:
+        return {'error': 'compilation_timeout'}
+    except FileNotFoundError:
+        compiler = 'gcc' if language == 'c' else 'g++'
+        return {'error': f'{compiler}_not_found'}
+    except Exception as e:
+        return {'error': str(e)}
 
 def execute_with_monitoring(code, language, source_file=None):
     load_model()
 
+    # File extension mapping
+    extensions = {
+        'python': '.py',
+        'javascript': '.js',
+        'c': '.c',
+        'cpp': '.cpp'
+    }
+    
+    if language not in extensions:
+        return {
+            'status': 'error',
+            'error': f'Unsupported language: {language}',
+            'energyJoules': 0,
+            'executionTimeMs': 0,
+            'avgPowerWatts': 0,
+            'numReadings': 0
+        }
+
     cleanup_temp_file = False
+    executable = None
+    
     if source_file:
         code_file = source_file
     else:
-        suffix = '.py' if language == 'python' else '.js'
+        suffix = extensions[language]
         with tempfile.NamedTemporaryFile(mode='w', suffix=suffix, delete=False) as f:
             f.write(code)
             code_file = f.name
         cleanup_temp_file = True
     
     try:
+        # Compile C/C++ if needed
+        if language in ['c', 'cpp']:
+            compile_result = compile_code(code_file, language)
+            
+            if isinstance(compile_result, dict) and 'error' in compile_result:
+                return {
+                    'status': 'error',
+                    'error': compile_result['error'],
+                    'stderr': compile_result.get('stderr', ''),
+                    'energyJoules': 0,
+                    'executionTimeMs': 0,
+                    'avgPowerWatts': 0,
+                    'numReadings': 0
+                }
+            
+            executable = compile_result
+            cmd = [executable]
+        
+        # Python/JavaScript - direct execution
+        elif language == 'python':
+            cmd = ['python3', code_file]
+        elif language == 'javascript':
+            cmd = ['node', code_file]
+        
+        # Start energy monitoring
         energy_readings = []
         stop_event = threading.Event()
         
@@ -183,8 +256,8 @@ def execute_with_monitoring(code, language, source_file=None):
         monitor_thread.start()
         time.sleep(0.2)
         
+        # Execute code
         start_time = time.time()
-        cmd = ['python3', code_file] if language == 'python' else ['node', code_file]
         result = subprocess.run(
             cmd,
             stdin=subprocess.DEVNULL,
@@ -213,8 +286,12 @@ def execute_with_monitoring(code, language, source_file=None):
     except Exception as e:
         return {'status': 'error', 'error': str(e)}
     finally:
+        # Cleanup temp source file
         if cleanup_temp_file and os.path.exists(code_file):
             os.unlink(code_file)
+        # Cleanup compiled executable
+        if executable and os.path.exists(executable):
+            os.unlink(executable)
 
 if __name__ == '__main__':
     try:
