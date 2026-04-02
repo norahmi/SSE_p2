@@ -27,6 +27,8 @@ async function setupDirStructure(sandbox: Sandbox): Promise<void> {
 }
 
 async function provisionPackages(sandbox: Sandbox, packages: string[]): Promise<void> {
+  console.log(`Installing packages: ${packages.join(", ")}...`);
+
   await sandbox.runCommand({
     cmd: 'dnf',
     args: ['install', '-y'].concat(packages),
@@ -102,7 +104,7 @@ async function main() {
     }
 
     const sandbox = await createSandbox();
-    // await provisionPackages(sandbox, ['nodejs', 'gcc', 'gcc-c++']);
+    await provisionPackages(sandbox, ['nodejs', 'gcc', 'gcc-c++']);
     await setupDirStructure(sandbox);
     await provisionRunnerFiles(sandbox, runnerPath);
     await setupRunnerDeps(sandbox);
