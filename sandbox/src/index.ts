@@ -26,6 +26,19 @@ async function setupDirStructure(sandbox: Sandbox): Promise<void> {
   });
 }
 
+async function provisionPackages(sandbox: Sandbox, packages: string[]): Promise<void> {
+  await sandbox.runCommand({
+    cmd: 'dnf',
+    args: ['install', '-y'].concat(packages),
+    stdout: process.stdout,
+    stderr: process.stderr,
+    sudo: true,
+  }).catch((err) => {
+    console.error("Error installing packages in sandbox:", err);
+    throw err;
+  });
+}
+
 async function provisionRunnerFiles(sandbox: Sandbox, rootPath: string = "../runner", targetRoot: string = "leafcode/runner"): Promise<void> {
   console.log(`Provisioning directory ${rootPath}...`);
   const ignoreFiles = [".venv", "__pycache__"];
@@ -89,6 +102,7 @@ async function main() {
     }
 
     const sandbox = await createSandbox();
+    // await provisionPackages(sandbox, ['nodejs', 'gcc', 'gcc-c++']);
     await setupDirStructure(sandbox);
     await provisionRunnerFiles(sandbox, runnerPath);
     await setupRunnerDeps(sandbox);
