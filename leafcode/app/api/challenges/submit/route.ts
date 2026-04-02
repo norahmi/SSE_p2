@@ -108,7 +108,7 @@ function getHiddenTestCases(
   seed: number
 ): FunctionalTestCase[] | null {
   const rng = createRng(seed)
-  const caseCount = 5
+  const caseCount = 20
 
   if (assignmentId === 1) {
     const testCases: FunctionalTestCase[] = []
@@ -476,7 +476,8 @@ export async function POST(
   }
 
   const startedAt = Date.now()
-  const functional = runnerLanguage === 'PYTHON'
+  // const functional = runnerLanguage === 'PYTHON'
+  const functional: FunctionalRunResult = runnerLanguage === 'PYTHON'
     ? await runSandboxFunctionalTests({
         assignmentId,
         studentCode: submissionBody.code,
