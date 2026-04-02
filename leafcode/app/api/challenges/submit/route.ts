@@ -7,11 +7,12 @@ import { put, del } from '@vercel/blob'
 import { Sandbox } from '@vercel/sandbox'
 import { runFunctionalTests, type FunctionalTestCase } from '@/lib/execution/test-runner'
 import { getRunnerLayout, type RunnerLanguage } from '@/lib/execution/templates'
+import { number } from 'better-auth'
 
 type AppSubmissionStatus = 'PENDING' | 'PASSED' | 'FAILED'
 
 interface SubmissionBody {
-  challengeId: number
+  challengeId: string
   code: string
   language: SubmissionLanguage
 }
@@ -221,14 +222,32 @@ function getHiddenTestCases(
   return null
 }
 
+function resolveAssignmentId(challengeId: string, challengeSlug: string): number | null {
+  const parsed = Number.parseInt(challengeId, 10)
+  if (Number.isInteger(parsed)) {
+    return parsed
+  }
+
+  const assignmentBySlug: Record<string, number> = {
+    'the-patience-trap': 1,
+    'the-turbo-trap': 2,
+    'the-telemetry-router': 3,
+    'the-solar-flare-scanner': 4,
+    'the-spatial-locality-crisis': 5,
+    'the-copy-by-value-sinkhole': 6,
+    'the-orbital-collision-engine': 7,
+  }
+
+  return assignmentBySlug[challengeSlug] ?? null
+}
+
 function isSubmissionBody(value: unknown): value is SubmissionBody {
   if (!value || typeof value !== 'object') return false
 
   const body = value as Record<string, unknown>
   return (
-    typeof body.challengeId === 'number' &&
-    Number.isInteger(body.challengeId) &&
-    body.challengeId > 0 &&
+    typeof body.challengeId === 'string' &&
+    body.challengeId.trim().length > 0 &&
     typeof body.code === 'string' &&
     body.code.trim().length > 0 &&
     typeof body.language === 'string' &&
@@ -270,7 +289,8 @@ export async function POST(
     )
   }
 
-  const { challengeId } = submissionBody
+  const challengeId = submissionBody.challengeId.trim()
+
   const runnerLanguage = toRunnerLanguage(submissionBody.language)
   if (!runnerLanguage) {
     return NextResponse.json({
@@ -284,7 +304,7 @@ export async function POST(
 
   const challenge = await prisma.challenge.findUnique({
     where: { id: challengeId },
-    select: { id: true, languages: true, difficulty: true },
+    select: { id: true, slug: true, languages: true, difficulty: true },
   })
 
   if (!challenge) {
@@ -295,16 +315,21 @@ export async function POST(
     return NextResponse.json({ error: 'Language is not allowed for this challenge.' }, { status: 400 })
   }
 
-  const seed = resolveTestSeed(challengeId, session.user.id)
-  const testCases = getHiddenTestCases(challengeId, runnerLanguage, seed)
+  const assignmentId = resolveAssignmentId(challenge.id, challenge.slug)
+  if (!assignmentId) {
+    return NextResponse.json({ error: `No functional test configuration found for challenge ${challenge.id}.` }, { status: 500 })
+  }
+
+  const seed = resolveTestSeed(assignmentId, session.user.id)
+  const testCases = getHiddenTestCases(assignmentId, runnerLanguage, seed)
   if (!testCases) {
-    return NextResponse.json({ error: `No functional test configuration found for assignment ${challengeId}.` }, { status: 500 })
+    return NextResponse.json({ error: `No functional test configuration found for assignment ${assignmentId}.` }, { status: 500 })
   }
 
   const startedAt = Date.now()
   const functional = await runFunctionalTests({
     language: runnerLanguage,
-    assignmentId: challengeId,
+    assignmentId,
     studentCode: submissionBody.code,
     testCases,
   })
@@ -314,7 +339,7 @@ export async function POST(
       prisma.userChallenge.create({
         data: {
           userId: session.user.id,
-          challengeId,
+          challengeId: challenge.id,
           code: submissionBody.code,
           language: submissionBody.language,
           status: 'FAILED',
@@ -323,7 +348,7 @@ export async function POST(
         },
       }),
       prisma.challenge.update({
-        where: { id: challengeId },
+        where: { id: challenge.id },
         data: { submissionCount: { increment: 1 } },
       }),
     ])
@@ -359,7 +384,7 @@ export async function POST(
   const submission = await prisma.userChallenge.create({
     data: {
       userId: session.user.id,
-      challengeId,
+      challengeId: challenge.id,
       code: '',
       language: submissionBody.language,
       status: 'PENDING' as AppSubmissionStatus,
@@ -419,7 +444,7 @@ export async function POST(
   let energyError = ''
 
   if (runnerLanguage === 'PYTHON') {
-    const layout = getRunnerLayout(runnerLanguage, challengeId)
+    const layout = getRunnerLayout(runnerLanguage, assignmentId)
     const runDir = `/tmp/${submission.id}`
     const driverPath = `${runDir}/${layout.driverFileName}`
 
@@ -435,7 +460,7 @@ export async function POST(
     for (let i = 0; i < testCases.length; i++) {
       console.log(`Energy grading progress: test ${i + 1}/${testCases.length}`)
       const stdinPath = `${runDir}/stdin_${i}.txt`
-      const stdinPayload = `${challengeId}\n${testCases[i].stdin}`
+      const stdinPayload = `${assignmentId}\n${testCases[i].stdin}`
       await sandbox.writeFiles([{ path: stdinPath, content: Buffer.from(stdinPayload, 'utf-8') }])
 
       const gradingResult = await sandbox.runCommand({
@@ -483,7 +508,7 @@ export async function POST(
   await sandbox.stop()
 
   const roundedEnergyJ = Math.max(0, Math.round(totalEnergyJ))
-  const yourEnergyMwh = totalEnergyJ
+  const yourEnergyMwh = Math.round((totalEnergyJ + Number.EPSILON) * 100) / 100
   const executionTime = Number(((Date.now() - startedAt) / 1000).toFixed(3))
   const energyAccepted = !energyError && runnerLanguage === 'PYTHON'
   const finalScore = energyAccepted ? Math.max(1, maxPoints - totalEnergyJ) : 0
@@ -498,7 +523,7 @@ export async function POST(
       },
     }),
     prisma.challenge.update({
-      where: { id: challengeId },
+      where: { id: challenge.id },
       data: { submissionCount: { increment: 1 } },
     }),
     prisma.user.update({

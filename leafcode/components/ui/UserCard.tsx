@@ -68,10 +68,10 @@ export default function UserCard({ user }: UserCardProps) {
         </div>
 
         {/* Right */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full sm:w-auto sm:min-w-[220px]">
-          {STAT_ITEMS(user).map(({ value, label }) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full sm:w-auto sm:min-w-[220px]">
+          {/* Card 1 - cell 1 */}
+          {STAT_ITEMS(user)[0] && (
             <div
-              key={label}
               className="rounded-lg px-3 py-2.5"
               style={{
                 border: 'color-mix(in srgb, var(--lc-green) 10%, transparent) 1px solid',
@@ -79,15 +79,55 @@ export default function UserCard({ user }: UserCardProps) {
               }}
             >
               <p className="font-['Space_Mono',monospace] font-bold text-base leading-none text-[var(--lc-green)]">
-                {value}
+                {STAT_ITEMS(user)[0].value}
               </p>
               <p className="font-['Space_Mono',monospace] text-[9px] uppercase tracking-wider mt-1.5"
                 style={{ color: 'var(--lc-text-subtle)' }}
               >
-                {label}
+                {STAT_ITEMS(user)[0].label}
               </p>
             </div>
-          ))}
+          )}
+          {/* Card 2 - cell 2 */}
+          {STAT_ITEMS(user)[1] && (
+            <div
+              className="rounded-lg px-3 py-2.5"
+              style={{
+                border: 'color-mix(in srgb, var(--lc-green) 10%, transparent) 1px solid',
+                background: 'color-mix(in srgb, var(--lc-green) 5%, transparent)',
+              }}
+            >
+              <p className="font-['Space_Mono',monospace] font-bold text-base leading-none text-[var(--lc-green)]">
+                {STAT_ITEMS(user)[1].value}
+              </p>
+              <p className="font-['Space_Mono',monospace] text-[9px] uppercase tracking-wider mt-1.5"
+                style={{ color: 'var(--lc-text-subtle)' }}
+              >
+                {STAT_ITEMS(user)[1].label}
+              </p>
+            </div>
+          )}
+          {/* Empty cell - cell 3 */}
+          <div className="hidden sm:block" />
+          {/* Card 3 - cell 4 */}
+          {STAT_ITEMS(user)[2] && (
+            <div
+              className="rounded-lg px-3 py-2.5"
+              style={{
+                border: 'color-mix(in srgb, var(--lc-green) 10%, transparent) 1px solid',
+                background: 'color-mix(in srgb, var(--lc-green) 5%, transparent)',
+              }}
+            >
+              <p className="font-['Space_Mono',monospace] font-bold text-base leading-none text-[var(--lc-green)]">
+                {STAT_ITEMS(user)[2].value}
+              </p>
+              <p className="font-['Space_Mono',monospace] text-[9px] uppercase tracking-wider mt-1.5"
+                style={{ color: 'var(--lc-text-subtle)' }}
+              >
+                {STAT_ITEMS(user)[2].label}
+              </p>
+            </div>
+          )}
         </div>
 
       </div>

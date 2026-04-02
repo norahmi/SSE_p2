@@ -46,7 +46,6 @@ export default function ActivityFeed({ entries }: ActivityFeedProps) {
     >
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4"
-        style={{ borderBottom: '1px solid var(--lc-border)' }}
       >
         <h2 className="font-['Space_Mono',monospace] text-xs uppercase tracking-widest text-[var(--lc-green)]/70">
           Recent Activity
@@ -59,7 +58,7 @@ export default function ActivityFeed({ entries }: ActivityFeedProps) {
       </div>
 
       {/* Entries */}
-      <ul style={{ borderColor: 'color-mix(in srgb, var(--lc-border) 60%, transparent)' }}
+      <ul style={{ borderColor: 'color-mix(in srgb, var(--lc-border) 60%, transparent)', borderTop: entries.length > 0 ? '1px solid var(--lc-border)' : undefined }}
         className="divide-y divide-[var(--lc-border)]/60"
       >
         {entries.map((entry) => {

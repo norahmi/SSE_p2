@@ -19,10 +19,10 @@ import { oneDark }       from '@codemirror/theme-one-dark'
 
 // Shape of a StartingCode row after being serialized from the server
 export interface SerializedStartingCode {
-  id: number
+  id: string
   language: Language
   code: string
-  challengeId: number
+  challengeId: string
 }
 
 // Shape of a leaderboard entry built server-side from UserChallenge + User
@@ -45,12 +45,12 @@ interface SubmitResult {
 }
 
 interface SubmissionReceievedResponse {
-  submissionId: number
+  submissionId: string
   status: 'PENDING' | 'PASSED' | 'FAILED'
 }
 
 interface ChallengeIDEProps {
-  challengeId:   number
+  challengeId:   string
   allowedLanguages: Language[]        // challenge.languages from DB
   startingCodes: SerializedStartingCode[]  // challenge.startingCodes from DB
   leaderboard:   ChallengeSubmission[]
@@ -361,7 +361,7 @@ export default function ChallengeIDE({
           className="rounded-xl border overflow-hidden animate-in fade-in slide-in-from-bottom-4
                      duration-500 border-[#1e3a2a]"
         >
-          <div className={`flex items-center gap-3 px-5 py-4 border-b border-[#1e3a2a]
+          <div className={`flex items-center gap-3 px-5 py-4 
             ${result.passed ? 'bg-[#28eb70]/6' : 'bg-red-400/5'}`}>
             {result.passed
               ? <CheckCircle className="h-5 w-5 text-[#28eb70] shrink-0" />
@@ -384,24 +384,26 @@ export default function ChallengeIDE({
           </div>
 
           {/* Stats grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 divide-x divide-y divide-[#1e3a2a] bg-[#0a1a10]/40">
-            {[
-              { icon: Zap,  label: 'Your energy consumption', value: `${result.yourEnergy} mWh`,    color: 'text-slate-300'   },
-              { icon: Zap,  label: 'Execution time', value: `${result.executionTime}s`,    color: 'text-slate-300'   },
-            ].map(({ icon: Icon, label, value, color }) => (
-              <div key={label} className="flex flex-col gap-1 px-5 py-4">
-                <div className="flex items-center gap-1.5">
-                  <Icon className={`h-3 w-3 ${color}`} />
-                  <span className="font-['Space_Mono',monospace] text-[9px] uppercase tracking-wider text-slate-600">
-                    {label}
+          { result.passed && 
+            <div className="grid grid-cols-2 sm:grid-cols-2 divide-x divide-y divide-[#1e3a2a] bg-[#0a1a10]/40 border-t border-[#1e3a2a]">
+              {[
+                { icon: Zap,  label: 'Your energy consumption', value: `${result.yourEnergy} Wh`,    color: 'text-slate-300'   },
+                { icon: Zap,  label: 'Execution time', value: `${result.executionTime} ms`,    color: 'text-slate-300'   },
+              ].map(({ icon: Icon, label, value, color }) => (
+                <div key={label} className="flex flex-col gap-1 px-5 py-4">
+                  <div className="flex items-center gap-1.5">
+                    <Icon className={`h-3 w-3 ${color}`} />
+                    <span className="font-['Space_Mono',monospace] text-[9px] uppercase tracking-wider text-slate-600">
+                      {label}
+                    </span>
+                  </div>
+                  <span className={`font-['Space_Mono',monospace] text-lg font-bold ${color}`}>
+                    {value}
                   </span>
                 </div>
-                <span className={`font-['Space_Mono',monospace] text-lg font-bold ${color}`}>
-                  {value}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          }
         </div>
       )}
 

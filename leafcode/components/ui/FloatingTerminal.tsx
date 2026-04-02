@@ -149,11 +149,13 @@ export default function FloatingTerminal() {
     <div className="fixed bottom-6 right-6 z-50 w-[340px] rounded-xl border border-[var(--lc-green)]/20 bg-[#060a08]/92 backdrop-blur-xl shadow-2xl overflow-hidden hidden md:flex flex-col">
 
       {/* Title bar */}
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-[var(--lc-green)]/5 border-b border-[var(--lc-green)]/10">
-        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        <span className="flex-1 text-center text-[10px] uppercase tracking-widest text-[var(--lc-green)]/40">
+      <div className="relative flex items-center px-3 py-2.5 bg-[var(--lc-green)]/5 border-b border-[var(--lc-green)]/10">
+        <div className="flex gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+        </div>
+        <span className="absolute left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-widest text-[var(--lc-green)]/40">
           leafcode · analyzer
         </span>
       </div>
