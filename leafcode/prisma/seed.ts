@@ -22,13 +22,13 @@ const challenges = [
     You must wait exactly that long to save battery, then encrypt and return the transmission payload.`,
     startingCodes: [
       { language: Language.PYTHON,
-        code: 
-`def wait_and_transmit (api , delay_ms , payload_string ):
-"""Waits for the specified delay_ms , then encrypts and returns the payload .
-WARNING : Constant CPU polling will drain the battery !
-"""
-# Write your energy - efficient code here
-pass
+        code:
+`def wait_and_transmit(api, delay_ms, payload_string):
+    """Waits for the specified delay_ms, then encrypts and returns the payload.
+    WARNING: Constant CPU polling will drain the battery!
+    """
+    # Write your energy-efficient code here
+    pass
         `
       },
       { language: Language.CPP, 
@@ -122,23 +122,23 @@ def process_signals(frequencies):
   startingCodes: [
       { language: Language.PYTHON,
         code:
-`def count_valid_routes ( known_routes , queries ):
-"""
-Returns the number of queries that are valid prefixes of known_routes .
-HINT : Can you build a data structure that maps prefixes in advance ?
-"""
-# Write your energy - efficient code here
-return 0
+`def count_valid_routes(known_routes, queries):
+    """
+    Returns the number of queries that are valid prefixes of known_routes.
+    HINT: Can you build a data structure that maps prefixes in advance?
+    """
+    # Write your energy-efficient code here
+    return 0
         `
       },
-      { language: Language.CPP, 
+      { language: Language.CPP,
         code:
 `#include <vector>
 #include <string>
 
 /**
  * Returns the number of queries that are valid prefixes of known_routes.
- * * HINT: How can you avoid O(N * M) string comparisons? 
+ * HINT: How can you avoid O(N * M) string comparisons?
  * Think about using a Trie or a sorted search.
  */
 int count_valid_routes(const std::vector<std::string>& known_routes, const std::vector<std::string>& queries) {
@@ -146,31 +146,31 @@ int count_valid_routes(const std::vector<std::string>& known_routes, const std::
     return 0;
 }
         ` },
-      { language: Language.C, 
+      { language: Language.C,
         code:
 `#include <stdio.h>
 #include <string.h>
 
 /**
  * Returns the number of queries that are valid prefixes of known_routes.
- * * @param known_routes An array of strings representing valid telemetry routes.
+ * @param known_routes An array of strings representing valid telemetry routes.
  * @param num_routes The number of elements in known_routes.
  * @param queries An array of strings to check against known routes.
  * @param num_queries The number of elements in queries.
- * * HINT: Can you build a data structure (like a Trie) to map prefixes in advance?
+ * HINT: Can you build a data structure (like a Trie) to map prefixes in advance?
  */
 int count_valid_routes(const char** known_routes, int num_routes, const char** queries, int num_queries) {
     // Write your energy-efficient code here
     return 0;
 }
         ` },
-      { language: Language.JAVASCRIPT, 
+      { language: Language.JAVASCRIPT,
         code:
 `/**
  * Returns the number of queries that are valid prefixes of known_routes.
- * * @param {string[]} knownRoutes
+ * @param {string[]} knownRoutes
  * @param {string[]} queries
- * * HINT: Building a nested object representing each character 
+ * HINT: Building a nested object representing each character
  * can help you find prefixes in linear time.
  */
 function countValidRoutes(knownRoutes, queries) {
@@ -196,21 +196,21 @@ function countValidRoutes(knownRoutes, queries) {
       { language: Language.PYTHON,
         code:
 `def max_radiation_window(radiation_data, k):
-"""
-Finds the maximum sum of any contiguous sub-array of length 'k'.
-HINT: Do you really need to recompute every window?
-"""
-return 0
+    """
+    Finds the maximum sum of any contiguous sub-array of length 'k'.
+    HINT: Do you really need to recompute every window?
+    """
+    return 0
         `
       },
-      { language: Language.CPP, 
+      { language: Language.CPP,
         code:
 `#include <vector>
 #include <algorithm>
 
 /**
  * Finds the maximum sum of any contiguous sub-array of length 'k'.
- * * HINT: A "Sliding Window" approach will let you solve this in O(n) time
+ * HINT: A "Sliding Window" approach will let you solve this in O(n) time
  * instead of O(n * k).
  */
 long long max_radiation_window(const std::vector<int>& radiation_data, int k) {
@@ -218,16 +218,16 @@ long long max_radiation_window(const std::vector<int>& radiation_data, int k) {
     return 0;
 }
         ` },
-      { language: Language.C, 
+      { language: Language.C,
         code:
 `#include <stdio.h>
 
 /**
  * Finds the maximum sum of any contiguous sub-array of length 'k'.
- * * @param radiation_data An array of integers representing sensor readings.
+ * @param radiation_data An array of integers representing sensor readings.
  * @param n The total number of seconds (size of the array).
  * @param k The window size in seconds.
- * * HINT: If you subtract the value leaving the window and add the 
+ * HINT: If you subtract the value leaving the window and add the
  * value entering it, you never have to re-sum the middle!
  */
 long long max_radiation_window(const int* radiation_data, int n, int k) {
