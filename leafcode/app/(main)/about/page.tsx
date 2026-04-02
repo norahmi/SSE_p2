@@ -3,8 +3,7 @@ import ParticleField from '@/components/ui/ParticleField'
 import { Zap, Leaf, Trophy, Code2, Globe2, Users } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'About LeafCode - Training the Green Developers of Tomorrow',
-  description: 'LeafCode gamifies energy-efficient coding, teaching developers to write sustainable software that reduces global carbon emissions at scale.'
+  title: 'About',
 }
 
 export default function AboutPage() {
