@@ -37,7 +37,6 @@ def _build_input_payload():
     parser.add_argument('-l', '--language', help='Execution language (e.g. python, javascript)')
     parser.add_argument('-s', '--submission-id', help='Submission ID')
     parser.add_argument('-f', '--file', help='Path to source code file')
-    parser.add_argument('--stdin-file', help='Path to stdin payload file')
 
     args = parser.parse_args()
 
@@ -72,7 +71,6 @@ def _build_input_payload():
             'submissionId': payload['submissionId'],
             'code': payload['code'] if has_code else None,
             'sourceFile': payload['file'] if has_file else None,
-            'stdinData': str(payload.get('stdin', '')),
         }
 
     # CLI mode: language + submission ID required, code from stdin or --file
@@ -97,8 +95,6 @@ def _build_input_payload():
         'submissionId': args.submission_id,
         'code': code,
         'sourceFile': source_file,
-        'stdinFile': args.stdin_file,
-        'stdinData': None,
     }
 
 def load_model():
@@ -159,14 +155,14 @@ def estimate_power(cpu_percent):
 def monitor_energy(stop_event, energy_readings):
     while not stop_event.is_set():
         start = time.time()
-        cpu = psutil.cpu_percent(interval=0.05)
+        cpu = psutil.cpu_percent(interval=0.1)
         power = estimate_power(cpu)
         elapsed = time.time() - start
         energy = power * elapsed
         energy_readings.append(energy)
-        # time.sleep(max(0, 0.5 - elapsed))
+        time.sleep(max(0, 0.5 - elapsed))
 
-def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
+def execute_with_monitoring(code, language, source_file=None):
     load_model()
 
     cleanup_temp_file = False
@@ -191,8 +187,7 @@ def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
         cmd = ['python3', code_file] if language == 'python' else ['node', code_file]
         result = subprocess.run(
             cmd,
-            input=stdin_data,
-            text=True,
+            stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=60,
@@ -228,16 +223,10 @@ if __name__ == '__main__':
         print(json.dumps({'status': 'error', 'error': str(e)}))
         sys.exit(1)
 
-    stdin_data = input_data.get('stdinData') or ''
-    stdin_file = input_data.get('stdinFile')
-    if stdin_file:
-        stdin_data = _load_code_from_file(stdin_file)
-
     result = execute_with_monitoring(
         input_data['code'],
         input_data['language'],
         input_data.get('sourceFile'),
-        stdin_data,
     )
     result['submissionId'] = input_data['submissionId']
     print(json.dumps(result))
