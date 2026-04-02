@@ -697,7 +697,7 @@ export async function POST(
     yourEnergy: yourEnergyMwh,
     message: energyError
       ? `All functional tests passed. ${energyError}`
-      : `All functional tests passed. Energy consumed: ${totalEnergyJ.toFixed(2)}J.`,
+      : `All functional tests passed. Energy consumed: ${totalEnergyJ.toFixed(2)} J.`,
   }
 
   return NextResponse.json(returnResult)
