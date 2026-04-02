@@ -254,7 +254,7 @@ export async function POST(
   const returnResult:SubmissionResult = {
     passed: gradingOutput.status === "accepted",
     score: finalScore,
-    executionTime: Math.round(gradingOutput.executionTimeMs / 1000),
+    executionTime: Math.round(gradingOutput.executionTimeMs),
     yourEnergy: Math.round((gradingOutput.energyJoules / 3.6) * 100) / 100,
     message: gradingOutput.status === "accepted" ? "Submission accepted!" : "Submission rejected."
   };
