@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import ParticleField from '@/components/ui/ParticleField'
-import { Zap, Leaf, Trophy, Code2, Globe2, Users } from 'lucide-react'
+import { Leaf, Trophy, Globe2 } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'About',
@@ -17,12 +17,12 @@ export default function AboutPage() {
           About LeafCode
         </p>
         <h1 className="font-['Space_Mono',monospace] text-4xl md:text-5xl font-bold text-slate-100 mb-6">
-          Your Algorithm Is <span className="text-[#28eb70]">Melting Glaciers</span>.
+          Your Code Is <span className="text-[#28eb70]">Melting Glaciers</span>.
           <br />
-          We're Here To Fix That.
+          We&apos;re Here To Fix That.
         </h1>
         <p className="text-slate-400 text-base md:text-lg max-w-3xl leading-relaxed">
-          Every inefficient loop, every wasteful recursive call, every unoptimized data structure — they all consume real energy in real data centers powered by real coal plants. LeafCode makes the invisible visible: your code has a carbon footprint, and it's bigger than you think.
+          Every inefficient loop, every wasteful recursive call, every unoptimized data structure — they all consume real energy in real data centers powered by real coal plants. LeafCode makes the invisible visible: your code has a carbon footprint, and it&apos;s bigger than you think.
         </p>
       </div>
 
@@ -128,7 +128,7 @@ export default function AboutPage() {
             Make Green Code The Default
           </h3>
           <p className="text-sm text-slate-500 leading-relaxed">
-            We're building a generation of developers who instinctively optimize for sustainability — not as an afterthought, but as foundational practice.
+            We&apos;re building a generation of developers who instinctively optimize for sustainability — not as an afterthought, but as foundational practice.
           </p>
         </div>
 
@@ -233,7 +233,7 @@ export default function AboutPage() {
                 Instant Feedback
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed">
-                See your code's energy consumption in real-time. Learn which patterns waste power and which ones scale efficiently.
+                See your code&apos;s energy consumption in real-time. Learn which patterns waste power and which ones scale efficiently.
               </p>
             </div>
           </div>
@@ -277,13 +277,13 @@ export default function AboutPage() {
         </h2>
         <div className="space-y-4 text-slate-400 leading-relaxed">
           <p>
-            By 2030, we envision a world where energy-aware coding isn't a specialty — it's baseline literacy. Where every CS graduate understands that their algorithms have environmental impact. Where "Does it work?" becomes "Does it work <span className="text-[#28eb70] font-semibold">sustainably</span>?"
+            By 2030, we envision a world where energy-aware coding isn&apos;t a specialty — it&apos;s baseline literacy. Where every CS graduate understands that their algorithms have environmental impact. Where &quot;Does it work?&quot; becomes &quot;Does it work <span className="text-[#28eb70] font-semibold">sustainably</span>?&quot;
           </p>
           <p>
-            We're not asking developers to sacrifice performance. We're showing them how marginal gains in efficiency create exponential environmental returns when deployed at internet scale. A 10% energy reduction seems trivial — until you multiply it by a billion users and a trillion compute cycles.
+            We&apos;re not asking developers to sacrifice performance. We&apos;re showing them how marginal gains in efficiency create exponential environmental returns when deployed at internet scale. A 10% energy reduction seems trivial — until you multiply it by a billion users and a trillion compute cycles.
           </p>
           <p className="text-[#28eb70] font-semibold">
-            Small optimizations. Exponential impact. That's the LeafCode way.
+            Small optimizations. Exponential impact. That&apos;s the LeafCode way.
           </p>
         </div>
       </div>
