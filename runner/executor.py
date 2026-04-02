@@ -159,12 +159,12 @@ def estimate_power(cpu_percent):
 def monitor_energy(stop_event, energy_readings):
     while not stop_event.is_set():
         start = time.time()
-        cpu = psutil.cpu_percent(interval=0.1)
+        cpu = psutil.cpu_percent(interval=0.05)
         power = estimate_power(cpu)
         elapsed = time.time() - start
         energy = power * elapsed
         energy_readings.append(energy)
-        time.sleep(max(0, 0.5 - elapsed))
+        # time.sleep(max(0, 0.5 - elapsed))
 
 def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
     load_model()

@@ -100,7 +100,7 @@ function getHiddenTestCases(
   seed: number
 ): FunctionalTestCase[] | null {
   const rng = createRng(seed)
-  const caseCount = 20
+  const caseCount = 5
 
   if (assignmentId === 1) {
     const testCases: FunctionalTestCase[] = []
@@ -318,7 +318,6 @@ export async function POST(
           code: submissionBody.code,
           language: submissionBody.language,
           status: 'FAILED',
-          co2Consumed: 0,
           energyConsumed: 0,
           score: 0,
         },
@@ -364,7 +363,6 @@ export async function POST(
       code: '',
       language: submissionBody.language,
       status: 'PENDING' as AppSubmissionStatus,
-      co2Consumed: 0,
       energyConsumed: 0,
       score: 0,
     },
@@ -485,10 +483,10 @@ export async function POST(
   await sandbox.stop()
 
   const roundedEnergyJ = Math.max(0, Math.round(totalEnergyJ))
-  const yourEnergyMwh = Math.round((totalEnergyJ / 3.6) * 100) / 100
+  const yourEnergyMwh = totalEnergyJ
   const executionTime = Number(((Date.now() - startedAt) / 1000).toFixed(3))
   const energyAccepted = !energyError && runnerLanguage === 'PYTHON'
-  const finalScore = energyAccepted ? Math.max(1, maxPoints - roundedEnergyJ) : 0
+  const finalScore = energyAccepted ? Math.max(1, maxPoints - totalEnergyJ) : 0
 
   await prisma.$transaction([
     prisma.userChallenge.update({

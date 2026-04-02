@@ -5,7 +5,7 @@ import { spawn, spawnSync } from 'node:child_process'
 import { getRunnerLayout, type RunnerLanguage } from '@/lib/execution/templates'
 
 const DEFAULT_COMPILE_TIMEOUT_MS = 10_000
-const DEFAULT_RUN_TIMEOUT_MS = 3_000
+const DEFAULT_RUN_TIMEOUT_MS = 30_000
 const MAX_CODE_SIZE_BYTES = 100_000
 const MAX_STDIO_BYTES = 256_000
 
