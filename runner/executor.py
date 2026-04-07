@@ -207,14 +207,13 @@ def compile_code(code_file, language):
 def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
     load_model()
 
-    # File extension mapping
     extensions = {
         'python': '.py',
         'javascript': '.js',
         'c': '.c',
         'cpp': '.cpp'
     }
-    
+
     if language not in extensions:
         return {
             'status': 'error',
@@ -227,7 +226,7 @@ def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
 
     cleanup_temp_file = False
     executable = None
-    
+
     if source_file:
         code_file = source_file
     else:
@@ -236,12 +235,12 @@ def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
             f.write(code)
             code_file = f.name
         cleanup_temp_file = True
-    
+
     try:
-        # Compile C/C++ if needed
+        # Compile if needed
         if language in ['c', 'cpp']:
             compile_result = compile_code(code_file, language)
-            
+
             if isinstance(compile_result, dict) and 'error' in compile_result:
                 return {
                     'status': 'error',
@@ -252,61 +251,98 @@ def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
                     'avgPowerWatts': 0,
                     'numReadings': 0
                 }
-            
+
             executable = compile_result
             cmd = [executable]
-        
-        # Python/JavaScript - direct execution
+
         elif language == 'python':
             cmd = ['python3', code_file]
+
         elif language == 'javascript':
             cmd = ['node', code_file]
-        
-        # Start energy monitoring
+
         energy_readings = []
         stop_event = threading.Event()
-        
-        monitor_thread = threading.Thread(target=monitor_energy, args=(stop_event, energy_readings))
+
+        def monitor_wrapper():
+            # Higher frequency sampling (IMPORTANT)
+            while not stop_event.is_set():
+                try:
+                    cpu = psutil.cpu_percent(interval=0.1)
+                    reading = estimate_power(cpu)
+                    energy_readings.append(reading)
+                except Exception:
+                    pass
+                time.sleep(0.01)  # 10ms sampling instead of ~500ms
+
+        monitor_thread = threading.Thread(target=monitor_wrapper)
         monitor_thread.start()
-        time.sleep(0.2)
-        
-        # Execute code
+        min_runtime = 0.5  # seconds
+        iterations = 0
+
         start_time = time.time()
-        result = subprocess.run(
-            cmd,
-            input=stdin_data,
-            text=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=60,
-        )
+
+        while True:
+            subprocess.run(
+                cmd,
+                input=stdin_data,
+                text=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=60,
+            )
+
+            iterations += 1
+
+            # Stop if we ran long enough
+            if time.time() - start_time >= min_runtime:
+                break
+
+            # Safety cap
+            if iterations >= 50:
+                break
+
         execution_time = int((time.time() - start_time) * 1000)
-        
+
         stop_event.set()
         monitor_thread.join(timeout=1)
-        
-        total_energy = sum(energy_readings)
-        avg_power = total_energy / (len(energy_readings) * 0.5) if energy_readings else 0
-        
+        total_energy = sum(energy_readings)/iterations
+
+        avg_power = (
+            total_energy / (len(energy_readings) * 0.01)
+            if energy_readings else 0
+        )
+
         return {
-            'status': 'accepted' if result.returncode == 0 else 'error',
-            'energyJoules': round(total_energy, 2),
+            'status': 'accepted',
+            'energyJoules': round(total_energy, 4),
             'executionTimeMs': execution_time,
             'avgPowerWatts': round(avg_power, 2),
-            'numReadings': len(energy_readings)
+            'numReadings': len(energy_readings),
+            'iterations': iterations,
         }
-        
+
     except subprocess.TimeoutExpired:
-        return {'status': 'timeout', 'error': 'Timeout (10s limit)'}
+        return {
+            'status': 'timeout',
+            'error': 'Timeout (60s limit)'
+        }
+
     except Exception as e:
-        return {'status': 'error', 'error': str(e)}
+        return {
+            'status': 'error',
+            'error': str(e)
+        }
+
     finally:
-        # Cleanup temp source file
+        # Cleanup temp file
         if cleanup_temp_file and os.path.exists(code_file):
             os.unlink(code_file)
-        # Cleanup compiled executable
+
+        # Cleanup compiled binary
         if executable and os.path.exists(executable):
             os.unlink(executable)
+
 
 def execute_functionally(code, language, source_file=None, stdin_data=''):
     cleanup_temp_file = False

@@ -666,6 +666,8 @@ export async function POST(
 
   await sandbox.stop()
 
+  totalEnergyJ = totalEnergyJ / testCases.length // Average energy per test case
+
   const roundedEnergyJ = Math.max(0, Math.round(totalEnergyJ))
   const yourEnergyMwh = Math.round((totalEnergyJ + Number.EPSILON) * 100) / 100
   const executionTime = Number(((Date.now() - startedAt) / 1000).toFixed(3))
