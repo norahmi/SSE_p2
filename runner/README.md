@@ -45,3 +45,15 @@ echo '{"submissionId": "test-id", "code": "print(42)", "language": "python"}' | 
 ```
 
 On completion, the JSON response with measurements will be printed to the terminal.
+
+## Third-Party Licenses
+This project includes code and data from the cloud-energy project:
+https://github.com/green-coding-solutions/cloud-energy
+
+Original license: MIT License
+Copyright (c) Green Coding Solutions
+
+Files used from the cloud-energy project include:
+- auto_detect.py
+- xgb.py
+- data/spec_data_cleaned.csv

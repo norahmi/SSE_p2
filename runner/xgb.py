@@ -1,3 +1,12 @@
+# This file is derived from the cloud-energy project:
+# https://github.com/green-coding-solutions/cloud-energy
+#
+# Original license: MIT License
+# Copyright (c) Green Coding Solutions
+#
+# Modifications:
+# - None
+
 # pylint: disable=redefined-outer-name,invalid-name
 
 import sys
