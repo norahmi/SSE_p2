@@ -265,19 +265,18 @@ def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
         stop_event = threading.Event()
 
         def monitor_wrapper():
-            # Higher frequency sampling (IMPORTANT)
             while not stop_event.is_set():
                 try:
                     cpu = psutil.cpu_percent(interval=0.1)
                     reading = estimate_power(cpu)
-                    energy_readings.append(reading)
+                    energy_readings.append(reading * 0.01)
                 except Exception:
                     pass
-                time.sleep(0.01)  # 10ms sampling instead of ~500ms
+                time.sleep(0.01)
 
         monitor_thread = threading.Thread(target=monitor_wrapper)
         monitor_thread.start()
-        min_runtime = 0.5  # seconds
+        min_runtime = 0.5
         iterations = 0
 
         start_time = time.time()
@@ -298,7 +297,6 @@ def execute_with_monitoring(code, language, source_file=None, stdin_data=''):
             if time.time() - start_time >= min_runtime:
                 break
 
-            # Safety cap
             if iterations >= 50:
                 break
 

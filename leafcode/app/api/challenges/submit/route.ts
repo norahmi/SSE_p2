@@ -669,7 +669,7 @@ export async function POST(
   totalEnergyJ = totalEnergyJ / testCases.length // Average energy per test case
 
   const roundedEnergyJ = Math.max(0, Math.round(totalEnergyJ))
-  const yourEnergyMwh = Math.round((totalEnergyJ + Number.EPSILON) * 100) / 100
+  const yourEnergyJ = Math.round((totalEnergyJ + Number.EPSILON) * 100) / 100
   const executionTime = Number(((Date.now() - startedAt) / 1000).toFixed(3))
   const energyAccepted = !energyError && runnerLanguage === 'PYTHON'
   const finalScore = energyAccepted ? Math.max(1, maxPoints - totalEnergyJ) : 0
@@ -697,7 +697,7 @@ export async function POST(
     passed: energyAccepted,
     score: finalScore,
     executionTime,
-    yourEnergy: yourEnergyMwh,
+    yourEnergy: roundedEnergyJ  * 1000,
     message: energyError
       ? `All functional tests passed. ${energyError}`
       : `All functional tests passed. Energy consumed: ${totalEnergyJ.toFixed(2)} J.`,

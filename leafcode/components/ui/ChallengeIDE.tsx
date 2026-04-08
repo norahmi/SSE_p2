@@ -362,7 +362,7 @@ export default function ChallengeIDE({
           { result.passed && 
             <div className="grid grid-cols-2 sm:grid-cols-2 divide-x divide-y divide-[#1e3a2a] bg-[#0a1a10]/40 border-t border-[#1e3a2a]">
               {[
-                { icon: Zap,  label: 'Your energy consumption', value: `${result.yourEnergy} J`,    color: 'text-slate-300'   },
+                { icon: Zap,  label: 'Your energy consumption', value: `${result.yourEnergy} mJ`,    color: 'text-slate-300'   },
                 { icon: Zap,  label: 'Execution time', value: `${result.executionTime} ms`,    color: 'text-slate-300'   },
               ].map(({ icon: Icon, label, value, color }) => (
                 <div key={label} className="flex flex-col gap-1 px-5 py-4">
